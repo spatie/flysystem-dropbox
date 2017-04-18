@@ -2,12 +2,12 @@
 
 namespace Spatie\FlysystemDropbox;
 
-use League\Flysystem\Adapter\AbstractAdapter;
-use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
-use League\Flysystem\Config;
 use Exception;
 use LogicException;
 use Spatie\Dropbox\Client;
+use League\Flysystem\Config;
+use League\Flysystem\Adapter\AbstractAdapter;
+use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 
 class DropboxAdapter extends AbstractAdapter
 {
@@ -174,15 +174,14 @@ class DropboxAdapter extends AbstractAdapter
 
         $result = $this->client->listContents($location, $recursive);
 
-        if (!count($result['entries'])) {
+        if (! count($result['entries'])) {
             return [];
         }
 
-        return array_map(function($entry) {
+        return array_map(function ($entry) {
             $path = $this->removePathPrefix($entry['path_display']);
 
             return $this->normalizeResponse($entry, $path);
-
         }, $result['entries']);
     }
 
@@ -195,7 +194,7 @@ class DropboxAdapter extends AbstractAdapter
 
         try {
             $object = $this->client->getMetadata($path);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
 
@@ -243,7 +242,7 @@ class DropboxAdapter extends AbstractAdapter
     {
         $path = parent::applyPathPrefix($path);
 
-        return '/' . ltrim(rtrim($path, '/'), '/');
+        return '/'.ltrim(rtrim($path, '/'), '/');
     }
 
     public function getClient(): DropboxClient
