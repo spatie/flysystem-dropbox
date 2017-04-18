@@ -5,10 +5,9 @@ namespace Spatie\FlysystemDropbox;
 
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
-use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 
-class DropboxAdapter extends AbstractAdapter implements AdapterInterface
+class DropboxAdapter extends AbstractAdapter
 {
     use NotSupportingVisibilityTrait;
 
@@ -60,7 +59,7 @@ class DropboxAdapter extends AbstractAdapter implements AdapterInterface
      */
     public function update($path, $contents, Config $config)
     {
-        // TODO: Implement update() method.
+        return $this->upload($path, $contents, 'overwrite');
     }
 
     /**
@@ -78,29 +77,43 @@ class DropboxAdapter extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Rename a file.
-     *
      * @param string $path
-     * @param string $newpath
+     * @param string $newPath
      *
      * @return bool
      */
-    public function rename($path, $newpath)
+    public function rename($path, $newPath): bool
     {
-        // TODO: Implement rename() method.
+        $path = $this->applyPathPrefix($path);
+        $newPath = $this->applyPathPrefix($newPath);
+
+        try {
+            $this->client->move($path, $newPath);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Copy a file.
-     *
      * @param string $path
      * @param string $newpath
      *
      * @return bool
      */
-    public function copy($path, $newpath)
+    public function copy($path, $newpath): bool
     {
-        // TODO: Implement copy() method.
+        $path = $this->applyPathPrefix($path);
+        $newpath = $this->applyPathPrefix($newpath);
+
+        try {
+            $this->client->copy($path, $newpath);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

@@ -23,7 +23,37 @@ class DropboxClient
         ]);
     }
 
-    public function listContents($directory = '', $recursive = false)
+    public function move(string $path, string $newPath): array
+    {
+        $path = $this->normalizePath($path);
+        $newPath = $this->normalizePath($newPath);
+
+        $response = $this->client->post('files/move', [
+            'json' => [
+                'from_path' => $path,
+                'to_path' => $newPath,
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    public function copy(string $path, string $newPath): array
+    {
+        $path = $this->normalizePath($path);
+        $newPath = $this->normalizePath($newPath);
+
+        $response = $this->client->post('files/copy', [
+            'json' => [
+                'from_path' => $path,
+                'to_path' => $newPath,
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    public function listContents($directory = '', $recursive = false): array
     {
         $directory = $directory === '/' ? '' : $directory;
 
