@@ -8,6 +8,7 @@ use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\Config;
 use Exception;
 use League\Flysystem\Util;
+use LogicException;
 
 class DropboxAdapter extends AbstractAdapter
 {

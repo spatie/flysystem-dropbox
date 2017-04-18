@@ -169,7 +169,7 @@ class DropboxClient
      * @param string $mode
      * @param string|resource $contents
      *
-     * @return mixed
+     * @return array|false
      */
     public function upload(string $path, string $mode, $contents)
     {
