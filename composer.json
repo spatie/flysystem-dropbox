@@ -3,7 +3,11 @@
     "description": "Flysystem Adapter for the Dropbox v2 API",
     "keywords": [
         "spatie",
-        "flysystem-dropbox"
+        "flysystem-dropbox",
+        "flysystem",
+        "dropbox",
+        "v2",
+        "api"
     ],
     "homepage": "https://github.com/spatie/flysystem-dropbox",
     "license": "MIT",
@@ -16,7 +20,7 @@
         }
     ],
     "require": {
-        "php": "^7.1",
+        "php": "^7.0",
         "guzzlehttp/guzzle": "^6.2",
         "league/flysystem": "^1.0"
     },
