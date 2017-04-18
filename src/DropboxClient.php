@@ -37,10 +37,42 @@ class DropboxClient
         return json_decode($response->getBody(), true);
     }
 
-    public function uploadFromString(string $location, string $mode, string $contents)
+    public function getTemporaryLink(string $path): string
+    {
+        $path = $this->normalizePath($path);
+
+        $response = $this->client->post('files/get_temporary_link', [
+            'json' => [
+                'path' => $path,
+            ],
+        ]);
+
+        $body = json_decode($response->getBody(), true);
+
+        return $body['link'];
+    }
+
+    public function getThumbnail(string $path, string $format = 'jpeg', string $size = 'w64h64'): string
     {
         $dropboxApiArguments = [
-            'path' => $location,
+            'path' => $this->normalizePath($path),
+            'format' => $format,
+            'size' => $size
+        ];
+
+        $response = $this->client->post('https://content.dropboxapi.com/2/files/get_thumbnail', [
+            'headers' => [
+                'Dropbox-API-Arg' => json_encode($dropboxApiArguments),
+            ],
+        ]);
+
+        return (string) $response->getBody();
+    }
+
+    public function uploadFromString(string $path, string $mode, string $contents)
+    {
+        $dropboxApiArguments = [
+            'path' => $this->normalizePath($path),
             'mode' => $mode,
             'autorename' => true,
         ];
@@ -53,6 +85,21 @@ class DropboxClient
             'body' => $contents,
         ]);
 
-        return json_decode($response->getBody(), true);
+        $metadata = json_decode($response->getBody(), true);
+
+        $metadata['.tag'] = 'file';
+
+        return $metadata;
+    }
+
+    public function normalizePath(string $path): string
+    {
+        $path = trim($path,'/');
+
+        if ($path === '') {
+            return '';
+        }
+
+        return '/'.$path;
     }
 }

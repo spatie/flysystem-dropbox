@@ -205,7 +205,7 @@ class DropboxAdapter extends AbstractAdapter implements AdapterInterface
 
         $result = $this->client->listContents($location, $recursive);
 
-        if (! count($result['entries'])) {
+        if (!count($result['entries'])) {
             return [];
         }
 
@@ -263,6 +263,16 @@ class DropboxAdapter extends AbstractAdapter implements AdapterInterface
     public function getTimestamp($path)
     {
         // TODO: Implement getTimestamp() method.
+    }
+
+    public function getTemporaryLink(string $path): string
+    {
+        return $this->client->getTemporaryLink($path);
+    }
+
+    public function getThumbnail(string $path, string $format = 'jpeg', string $size = 'w64h64')
+    {
+        return $this->client->getThumbnail($path, $format, $size);
     }
 
     public function applyPathPrefix($path): string
