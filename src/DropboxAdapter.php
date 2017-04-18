@@ -7,6 +7,7 @@ use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\Config;
 use Exception;
+use League\Flysystem\Util;
 
 class DropboxAdapter extends AbstractAdapter
 {
@@ -34,7 +35,7 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function writeStream($path, $resource, Config $config)
     {
-        // TODO: Implement writeStream() method.
+        return $this->upload($path, $resource, 'add');
     }
 
     /**
@@ -50,7 +51,7 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function updateStream($path, $resource, Config $config)
     {
-        // TODO: Implement updateStream() method.
+        return $this->upload($path, $resource, 'overwrite');
     }
 
     /**
@@ -251,11 +252,18 @@ class DropboxAdapter extends AbstractAdapter
         return $this->client;
     }
 
-    protected function upload($path, $contents, $mode)
+    /**
+     * @param string           $path
+     * @param resource|string  $contents
+     * @param string           $mode
+     *
+     * @return array|false file metadata
+     */
+    protected function upload(string $path, $contents, string $mode)
     {
-        $location = $this->applyPathPrefix($path);
+        $path = $this->applyPathPrefix($path);
 
-        $object = $this->client->uploadFromString($location, $mode, $contents);
+        $object = $this->client->upload($path, $mode, $contents);
 
         return $this->normalizeResponse($object);
     }

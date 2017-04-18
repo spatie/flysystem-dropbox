@@ -164,7 +164,14 @@ class DropboxClient
         return (string) $response->getBody();
     }
 
-    public function uploadFromString(string $path, string $mode, string $contents)
+    /**
+     * @param string $path
+     * @param string $mode
+     * @param string|resource $contents
+     *
+     * @return mixed
+     */
+    public function upload(string $path, string $mode, $contents)
     {
         $dropboxApiArguments = [
             'path' => $this->normalizePath($path),
