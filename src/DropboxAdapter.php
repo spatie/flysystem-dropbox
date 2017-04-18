@@ -2,13 +2,12 @@
 
 namespace Spatie\FlysystemDropbox;
 
-
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\Config;
 use Exception;
-use League\Flysystem\Util;
 use LogicException;
+use Spatie\Dropbox\Client;
 
 class DropboxAdapter extends AbstractAdapter
 {
@@ -17,9 +16,10 @@ class DropboxAdapter extends AbstractAdapter
     /** @var \Spatie\FlysystemDropbox\DropboxClient */
     protected $client;
 
-    public function __construct(DropboxClient $client, string $prefix = null)
+    public function __construct(Client $client, string $prefix = null)
     {
         $this->client = $client;
+
         $this->setPathPrefix($prefix);
     }
 
