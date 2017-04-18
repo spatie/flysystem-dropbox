@@ -53,6 +53,41 @@ class DropboxClient
         return json_decode($response->getBody(), true);
     }
 
+    public function delete(string $path): array
+    {
+        $path = $this->normalizePath($path);
+
+        $response = $this->client->post('files/delete', [
+            'json' => [
+                'path' => $path,
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return mixed
+     */
+    public function createFolder(string $path)
+    {
+        $path = $this->normalizePath($path);
+
+        $response = $this->client->post('files/create_folder', [
+            'json' => [
+                'path' => $path,
+            ]
+        ]);
+
+        $result = json_decode($response->getBody(), true);
+
+        $result['.tag'] = 'folder';
+
+        return $result;
+    }
+
     public function listContents($directory = '', $recursive = false): array
     {
         $directory = $directory === '/' ? '' : $directory;

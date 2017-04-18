@@ -6,6 +6,7 @@ namespace Spatie\FlysystemDropbox;
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\Config;
+use Exception;
 
 class DropboxAdapter extends AbstractAdapter
 {
@@ -21,8 +22,6 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Write a new file.
-     *
      * @param string $path
      * @param string $contents
      * @param Config $config Config object
@@ -35,8 +34,6 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Write a new file using a stream.
-     *
      * @param string $path
      * @param resource $resource
      * @param Config $config Config object
@@ -49,8 +46,6 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Update a file.
-     *
      * @param string $path
      * @param string $contents
      * @param Config $config Config object
@@ -63,8 +58,6 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Update a file using a stream.
-     *
      * @param string $path
      * @param resource $resource
      * @param Config $config Config object
@@ -117,15 +110,21 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Delete a file.
-     *
      * @param string $path
      *
      * @return bool
      */
-    public function delete($path)
+    public function delete($path): bool
     {
-        // TODO: Implement delete() method.
+        $location = $this->applyPathPrefix($path);
+
+        try {
+            $this->client->delete($location);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -135,14 +134,12 @@ class DropboxAdapter extends AbstractAdapter
      *
      * @return bool
      */
-    public function deleteDir($dirname)
+    public function deleteDir($dirname): bool
     {
-        // TODO: Implement deleteDir() method.
+        return $this->delete($dirname);
     }
 
     /**
-     * Create a directory.
-     *
      * @param string $dirname directory name
      * @param Config $config
      *
@@ -150,20 +147,15 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function createDir($dirname, Config $config)
     {
-        // TODO: Implement createDir() method.
-    }
+        $path = $this->applyPathPrefix($dirname);
 
-    /**
-     * Set the visibility for a file.
-     *
-     * @param string $path
-     * @param string $visibility
-     *
-     * @return array|false file meta data
-     */
-    public function setVisibility($path, $visibility)
-    {
-        // TODO: Implement setVisibility() method.
+        $result = $this->client->createFolder($path);
+
+        if ($result === null) {
+            return false;
+        }
+
+        return $this->normalizeResponse($result);
     }
 
     /**
