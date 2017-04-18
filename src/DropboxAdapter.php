@@ -170,8 +170,6 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function listContents($directory = '', $recursive = false): array
     {
-        $listing = [];
-
         $location = $this->applyPathPrefix($directory);
 
         $result = $this->client->listContents($location, $recursive);
@@ -180,12 +178,12 @@ class DropboxAdapter extends AbstractAdapter
             return [];
         }
 
-        foreach ($result['entries'] as $object) {
-            $path = $this->removePathPrefix($object['path_display']);
-            $listing[] = $this->normalizeResponse($object, $path);
-        }
+        return array_map(function($entry) {
+            $path = $this->removePathPrefix($entry['path_display']);
 
-        return $listing;
+            return $this->normalizeResponse($entry, $path);
+
+        }, $result['entries']);
     }
 
     /**
@@ -217,7 +215,7 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function getMimetype($path)
     {
-        throw new LogicException('The Dropbox API v2 does not support mimetypes. Path: ' . $path);
+        throw new LogicException("The Dropbox API v2 does not support mimetypes. Given path: `{$path}`.");
     }
 
     /**
@@ -281,7 +279,9 @@ class DropboxAdapter extends AbstractAdapter
             $result['bytes'] = $response['size'];
         }
 
-        $result['type'] = $response['.tag'] === 'folder' ? 'dir' : 'file';
+        $result['type'] = $response['.tag'] === 'folder'
+            ? 'dir'
+            : 'file';
 
         return $result;
     }
