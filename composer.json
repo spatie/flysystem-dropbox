@@ -16,19 +16,21 @@
         }
     ],
     "require": {
-        "php": "^7.1"
+        "php": "^7.1",
+        "guzzlehttp/guzzle": "^6.2",
+        "league/flysystem": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.0"
     },
     "autoload": {
         "psr-4": {
-            "Spatie\\Skeleton\\": "src"
+            "Spatie\\FlysystemDropbox\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Spatie\\Skeleton\\Test\\": "tests"
+            "Spatie\\FlysystemDropbox\\Test\\": "tests"
         }
     },
     "scripts": {
