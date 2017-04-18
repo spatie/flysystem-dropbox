@@ -88,13 +88,26 @@ class DropboxClient
         return $result;
     }
 
-    public function listContents($directory = '', $recursive = false): array
+    public function getMetadata(string $path)
     {
-        $directory = $directory === '/' ? '' : $directory;
+        $path = $this->normalizePath($path);
+
+        $response = $this->client->post('files/get_metadata', [
+            'json' => [
+                'path' => $path,
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    public function listContents($path = '', $recursive = false): array
+    {
+        $path = $this->normalizePath($path);
 
         $response = $this->client->post('files/list_folder', [
             'json' => [
-                'path' => $directory,
+                'path' => $path,
                 'recursive' => $recursive,
             ]
         ]);

@@ -149,13 +149,13 @@ class DropboxAdapter extends AbstractAdapter
     {
         $path = $this->applyPathPrefix($dirname);
 
-        $result = $this->client->createFolder($path);
+        $object = $this->client->createFolder($path);
 
-        if ($result === null) {
+        if ($object === null) {
             return false;
         }
 
-        return $this->normalizeResponse($result);
+        return $this->normalizeResponse($object);
     }
 
     /**
@@ -167,7 +167,7 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function has($path)
     {
-        // TODO: Implement has() method.
+        return $this->getMetadata($path);
     }
 
     /**
@@ -231,7 +231,15 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function getMetadata($path)
     {
-        // TODO: Implement getMetadata() method.
+        $path = $this->applyPathPrefix($path);
+
+        try {
+            $object = $this->client->getMetadata($path);
+        } catch(Exception $e) {
+            return false;
+        }
+
+        return $this->normalizeResponse($object);
     }
 
     /**
@@ -291,9 +299,9 @@ class DropboxAdapter extends AbstractAdapter
     {
         $location = $this->applyPathPrefix($path);
 
-        $result = $this->client->uploadFromString($location, $mode, $contents);
+        $object = $this->client->uploadFromString($location, $mode, $contents);
 
-        return $this->normalizeResponse($result);
+        return $this->normalizeResponse($object);
     }
 
     protected function normalizeResponse(array $response): array
