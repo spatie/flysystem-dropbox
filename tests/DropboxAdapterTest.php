@@ -2,13 +2,13 @@
 
 namespace Spatie\FlysystemDropbox\Test;
 
-use GuzzleHttp\Exception\BadResponseException;
+use Prophecy\Argument;
 use GuzzleHttp\Psr7\Request;
+use League\Flysystem\Config;
 use PHPUnit\Framework\TestCase;
 use Spatie\FlysystemDropbox\DropboxClient;
-use League\Flysystem\Config;
+use GuzzleHttp\Exception\BadResponseException;
 use Spatie\FlysystemDropbox\DropboxAdapter as Dropbox;
-use Prophecy\Argument;
 
 class DropboxAdapterTest extends TestCase
 {
@@ -118,7 +118,7 @@ class DropboxAdapterTest extends TestCase
         $mock->getMetadata('/one')->willReturn([
             '.tag'   => 'file',
             'server_modified' => '2015-05-12T15:50:38Z',
-            'path_display' => '/one'
+            'path_display' => '/one',
         ]);
 
         $adapter = new Dropbox($mock->reveal());
@@ -128,7 +128,7 @@ class DropboxAdapterTest extends TestCase
     public function testMetadataFileWasMovedFailure()
     {
         $mock = $this->prophesize(DropboxClient::class);
-        $mock->getMetadata('/one')->willThrow(new BadResponseException('ERROR',new Request('POST', '/one')));
+        $mock->getMetadata('/one')->willThrow(new BadResponseException('ERROR', new Request('POST', '/one')));
 
         $adapter = new Dropbox($mock->reveal());
         $this->assertFalse($adapter->has('one'));
