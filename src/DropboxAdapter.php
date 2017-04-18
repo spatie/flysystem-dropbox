@@ -22,11 +22,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     * @param string $contents
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
+     * {@inheritdoc}
      */
     public function write($path, $contents, Config $config)
     {
@@ -34,11 +30,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     * @param resource $resource
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
+     * {@inheritdoc}
      */
     public function writeStream($path, $resource, Config $config)
     {
@@ -46,11 +38,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     * @param string $contents
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
+     * {@inheritdoc}
      */
     public function update($path, $contents, Config $config)
     {
@@ -58,11 +46,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     * @param resource $resource
-     * @param Config $config Config object
-     *
-     * @return array|false false on failure file meta data on success
+     * {@inheritdoc}
      */
     public function updateStream($path, $resource, Config $config)
     {
@@ -70,10 +54,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     * @param string $newPath
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function rename($path, $newPath): bool
     {
@@ -90,10 +71,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     * @param string $newpath
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function copy($path, $newpath): bool
     {
@@ -110,9 +88,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function delete($path): bool
     {
@@ -128,11 +104,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Delete a directory.
-     *
-     * @param string $dirname
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function deleteDir($dirname): bool
     {
@@ -140,10 +112,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $dirname directory name
-     * @param Config $config
-     *
-     * @return array|false
+     * {@inheritdoc}
      */
     public function createDir($dirname, Config $config)
     {
@@ -159,11 +128,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Check whether a file exists.
-     *
-     * @param string $path
-     *
-     * @return array|bool|null
+     * {@inheritdoc}
      */
     public function has($path)
     {
@@ -171,11 +136,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Read a file.
-     *
-     * @param string $path
-     *
-     * @return array|false
+     * {@inheritdoc}
      */
     public function read($path)
     {
@@ -183,11 +144,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Read a file as a stream.
-     *
-     * @param string $path
-     *
-     * @return array|false
+     * {@inheritdoc}
      */
     public function readStream($path)
     {
@@ -195,10 +152,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $directory
-     * @param bool $recursive
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function listContents($directory = '', $recursive = false): array
     {
@@ -221,11 +175,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Get all the meta data of a file or directory.
-     *
-     * @param string $path
-     *
-     * @return array|false
+     * {@inheritdoc}
      */
     public function getMetadata($path)
     {
@@ -241,9 +191,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     *
-     * @return array|false
+     * {@inheritdoc}
      */
     public function getSize($path)
     {
@@ -251,9 +199,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     *
-     * @return array|false
+     * {@inheritdoc}
      */
     public function getMimetype($path)
     {
@@ -261,9 +207,7 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string $path
-     *
-     * @return array|false
+     * {@inheritdoc}
      */
     public function getTimestamp($path)
     {
@@ -280,11 +224,19 @@ class DropboxAdapter extends AbstractAdapter
         return $this->client->getThumbnail($path, $format, $size);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function applyPathPrefix($path): string
     {
         $path = parent::applyPathPrefix($path);
 
         return '/' . ltrim(rtrim($path, '/'), '/');
+    }
+
+    public function getClient(): DropboxClient
+    {
+        return $this->client;
     }
 
     protected function upload($path, $contents, $mode)
