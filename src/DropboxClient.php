@@ -4,6 +4,8 @@ namespace Spatie\FlysystemDropbox;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\StreamWrapper;
+use Psr\Http\Message\StreamInterface;
 
 class DropboxClient
 {
@@ -99,6 +101,21 @@ class DropboxClient
         ]);
 
         return json_decode($response->getBody(), true);
+    }
+
+    public function getFile(string $path)
+    {
+        $dropboxApiArguments = [
+            'path' => $this->normalizePath($path),
+        ];
+
+        $response = $this->client->post('https://content.dropboxapi.com/2/files/download', [
+            'headers' => [
+                'Dropbox-API-Arg' => json_encode($dropboxApiArguments),
+            ],
+        ]);
+
+        return StreamWrapper::getResource($response->getBody());
     }
 
     public function listContents($path = '', $recursive = false): array

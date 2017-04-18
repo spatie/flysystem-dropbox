@@ -140,7 +140,15 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function read($path)
     {
-        // TODO: Implement read() method.
+        if (! $object = $this->readStream($path)) {
+            return false;
+        }
+
+        $object['contents'] = stream_get_contents($object['stream']);
+        fclose($object['stream']);
+        unset($object['stream']);
+
+        return $object;
     }
 
     /**
@@ -148,7 +156,11 @@ class DropboxAdapter extends AbstractAdapter
      */
     public function readStream($path)
     {
-        // TODO: Implement readStream() method.
+        $path = $this->applyPathPrefix($path);
+
+        $stream = $this->client->getFile($path);
+
+        return compact('stream');
     }
 
     /**
