@@ -1,0 +1,40 @@
+{
+    "name": "spatie/flysystem-dropbox",
+    "description": "Flysystem Adapter for the Dropbox v2 API",
+    "keywords": [
+        "spatie",
+        "flysystem-dropbox"
+    ],
+    "homepage": "https://github.com/spatie/flysystem-dropbox",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alex Vanderbist",
+            "email": "alex.vanderbist@gmail.com",
+            "homepage": "https://spatie.be",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Spatie\\Skeleton\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Spatie\\Skeleton\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
