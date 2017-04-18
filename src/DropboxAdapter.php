@@ -195,14 +195,12 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * List contents of a directory.
-     *
      * @param string $directory
      * @param bool $recursive
      *
      * @return array
      */
-    public function listContents($directory = '', $recursive = false)
+    public function listContents($directory = '', $recursive = false): array
     {
         $listing = [];
 
@@ -243,20 +241,16 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Get the size of a file.
-     *
      * @param string $path
      *
      * @return array|false
      */
     public function getSize($path)
     {
-        // TODO: Implement getSize() method.
+        return $this->getMetadata($path);
     }
 
     /**
-     * Get the mimetype of a file.
-     *
      * @param string $path
      *
      * @return array|false
@@ -267,15 +261,13 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * Get the timestamp of a file.
-     *
      * @param string $path
      *
      * @return array|false
      */
     public function getTimestamp($path)
     {
-        // TODO: Implement getTimestamp() method.
+        return $this->getMetadata($path);
     }
 
     public function getTemporaryLink(string $path): string
