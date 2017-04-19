@@ -35,6 +35,7 @@ class DropboxAdapterTest extends TestCase
         ]);
 
         $result = $this->dropboxAdapter->write('something', 'contents', new Config());
+
         $this->assertInternalType('array', $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertEquals('file', $result['type']);
@@ -50,6 +51,7 @@ class DropboxAdapterTest extends TestCase
         ]);
 
         $result = $this->dropboxAdapter->update('something', 'contents', new Config());
+
         $this->assertInternalType('array', $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertEquals('file', $result['type']);
@@ -65,6 +67,7 @@ class DropboxAdapterTest extends TestCase
         ]);
 
         $result = $this->dropboxAdapter->writeStream('something', tmpfile(), new Config());
+
         $this->assertInternalType('array', $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertEquals('file', $result['type']);
@@ -80,6 +83,7 @@ class DropboxAdapterTest extends TestCase
         ]);
 
         $result = $this->dropboxAdapter->updateStream('something', tmpfile(), new Config());
+
         $this->assertInternalType('array', $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertEquals('file', $result['type']);
@@ -100,10 +104,11 @@ class DropboxAdapterTest extends TestCase
         ]);
 
         $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
+
         $this->assertInternalType('array', $this->dropboxAdapter->{$method}('one'));
     }
 
-    public function metadataProvider()
+    public function metadataProvider(): array
     {
         return [
             ['getMetadata'],
@@ -130,7 +135,9 @@ class DropboxAdapterTest extends TestCase
     {
         $stream = tmpfile();
         fwrite($stream, 'something');
+
         $this->client->download(Argument::any(), Argument::any())->willReturn($stream);
+
         $this->assertInternalType('array', $this->dropboxAdapter->read('something'));
     }
 
@@ -139,8 +146,11 @@ class DropboxAdapterTest extends TestCase
     {
         $stream = tmpfile();
         fwrite($stream, 'something');
+
         $this->client->download(Argument::any(), Argument::any())->willReturn($stream);
+
         $this->assertInternalType('array', $this->dropboxAdapter->readStream('something'));
+
         fclose($stream);
     }
 
@@ -148,6 +158,7 @@ class DropboxAdapterTest extends TestCase
     public function it_can_delete_stuff()
     {
         $this->client->delete('/prefix/something')->willReturn(['.tag' => 'file']);
+
         $this->assertTrue($this->dropboxAdapter->delete('something'));
         $this->assertTrue($this->dropboxAdapter->deleteDir('something'));
     }
@@ -178,6 +189,7 @@ class DropboxAdapterTest extends TestCase
         );
 
         $result = $this->dropboxAdapter->listContents('', true);
+
         $this->assertCount(2, $result);
     }
 
@@ -185,6 +197,7 @@ class DropboxAdapterTest extends TestCase
     public function it_can_rename_stuff()
     {
         $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
+        
         $this->assertTrue($this->dropboxAdapter->rename('something', 'something'));
     }
 
