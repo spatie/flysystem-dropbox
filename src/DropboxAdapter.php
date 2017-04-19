@@ -2,13 +2,12 @@
 
 namespace Spatie\FlysystemDropbox;
 
-use Exception;
 use LogicException;
 use Spatie\Dropbox\Client;
 use League\Flysystem\Config;
+use Spatie\Dropbox\Exceptions\BadRequest;
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
-use Spatie\Dropbox\Exceptions\BadRequest;
 
 class DropboxAdapter extends AbstractAdapter
 {
