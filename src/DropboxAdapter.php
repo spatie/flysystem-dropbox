@@ -266,7 +266,7 @@ class DropboxAdapter extends AbstractAdapter
         $path = $this->applyPathPrefix($path);
 
         try {
-            $object = $this->client->upload($path, $mode, $contents);
+            $object = $this->client->upload($path, $contents, $mode);
         } catch (BadRequest $e) {
             return false;
         }
