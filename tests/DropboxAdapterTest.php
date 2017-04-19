@@ -2,22 +2,22 @@
 
 namespace Spatie\FlysystemDropbox\Test;
 
-use GuzzleHttp\Exception\RequestException;
 use Prophecy\Argument;
+use Spatie\Dropbox\Client;
 use GuzzleHttp\Psr7\Request;
 use League\Flysystem\Config;
 use PHPUnit\Framework\TestCase;
-use Spatie\Dropbox\Client;
+use GuzzleHttp\Exception\RequestException;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 
 class DropboxAdapterTest extends TestCase
 {
-    /** @var \Spatie\Dropbox\Client|\Prophecy\Prophecy\ObjectProphecy  */
+    /** @var \Spatie\Dropbox\Client|\Prophecy\Prophecy\ObjectProphecy */
     protected $client;
-    
+
     /** @var \Spatie\FlysystemDropbox\DropboxAdapter */
     protected $dropboxAdapter;
-    
+
     public function setUp()
     {
         $this->client = $this->prophesize(Client::class);
