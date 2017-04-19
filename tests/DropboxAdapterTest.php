@@ -2,12 +2,13 @@
 
 namespace Spatie\FlysystemDropbox\Test;
 
+use GuzzleHttp\Psr7\Response;
 use Prophecy\Argument;
 use Spatie\Dropbox\Client;
 use GuzzleHttp\Psr7\Request;
 use League\Flysystem\Config;
 use PHPUnit\Framework\TestCase;
-use GuzzleHttp\Exception\RequestException;
+use Spatie\Dropbox\Exceptions\BadRequest;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 
 class DropboxAdapterTest extends TestCase
@@ -118,7 +119,7 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client = $this->prophesize(Client::class);
 
-        $this->client->getMetadata('/one')->willThrow(RequestException::create(new Request('POST', '')));
+        $this->client->getMetadata('/one')->willThrow(new BadRequest(new Response(409)));
 
         $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
 
@@ -155,13 +156,11 @@ class DropboxAdapterTest extends TestCase
     /** @test */
     public function it_can_create_a_directory()
     {
-        $this->client->createFolder('/prefix/fail/please')->willThrow(RequestException::create(new Request('POST', '')));
+        $this->client->createFolder('/prefix/fail/please')->willThrow(new BadRequest(new Response(409)));
         $this->client->createFolder('/prefix/pass/please')->willReturn([
             '.tag' => 'folder',
             'path_display'   => '/prefix/pass/please',
         ]);
-
-        $this->expectException(RequestException::class);
 
         $this->assertFalse($this->dropboxAdapter->createDir('fail/please', new Config()));
 
@@ -193,7 +192,7 @@ class DropboxAdapterTest extends TestCase
     /** @test */
     public function it_will_return_false_when_a_rename_has_failed()
     {
-        $this->client->move('/prefix/something', '/prefix/something')->willThrow(RequestException::create(new Request('POST', '')));
+        $this->client->move('/prefix/something', '/prefix/something')->willThrow(new BadRequest(new Response(409)));
 
         $this->assertFalse($this->dropboxAdapter->rename('something', 'something'));
     }
@@ -209,7 +208,7 @@ class DropboxAdapterTest extends TestCase
     /** @test */
     public function it_will_return_false_when_the_copy_process_has_failed()
     {
-        $this->client->copy(Argument::any(), Argument::any())->willThrow(RequestException::create(new Request('POST', '')));
+        $this->client->copy(Argument::any(), Argument::any())->willThrow(new BadRequest(new Response(409)));
 
         $this->assertFalse($this->dropboxAdapter->copy('something', 'something'));
     }
