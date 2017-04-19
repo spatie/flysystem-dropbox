@@ -2,11 +2,10 @@
 
 namespace Spatie\FlysystemDropbox\Test;
 
-use GuzzleHttp\Psr7\Response;
 use Prophecy\Argument;
 use Spatie\Dropbox\Client;
-use GuzzleHttp\Psr7\Request;
 use League\Flysystem\Config;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Spatie\Dropbox\Exceptions\BadRequest;
 use Spatie\FlysystemDropbox\DropboxAdapter;
