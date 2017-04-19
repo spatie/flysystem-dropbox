@@ -7,19 +7,14 @@ use Prophecy\Argument;
 use GuzzleHttp\Psr7\Request;
 use League\Flysystem\Config;
 use PHPUnit\Framework\TestCase;
-<<<<<<< HEAD
-use GuzzleHttp\Exception\BadResponseException;
-use Spatie\Dropbox\Client;
-=======
 use Spatie\Dropbox\Client as DropboxClient;
->>>>>>> 9e59d3c4334d57dd79583a4a26827a68cc026d9f
 use Spatie\FlysystemDropbox\DropboxAdapter as Dropbox;
 
 class DropboxAdapterTest extends TestCase
 {
     public function dropboxProvider()
     {
-        $mock = $this->prophesize(Client::class);
+        $mock = $this->prophesize(DropboxClient::class);
 
         return [
             [new Dropbox($mock->reveal(), 'prefix'), $mock],
