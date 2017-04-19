@@ -16,7 +16,7 @@ class DropboxAdapter extends AbstractAdapter
     /** @var \Spatie\FlysystemDropbox\DropboxClient */
     protected $client;
 
-    public function __construct(Client $client, string $prefix = null)
+    public function __construct(Client $client, string $prefix = '')
     {
         $this->client = $client;
 
@@ -246,7 +246,7 @@ class DropboxAdapter extends AbstractAdapter
     {
         $path = parent::applyPathPrefix($path);
 
-        return '/'.ltrim(rtrim($path, '/'), '/');
+        return '/'.trim($path, '/');
     }
 
     public function getClient(): Client
