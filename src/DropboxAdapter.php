@@ -8,6 +8,7 @@ use Spatie\Dropbox\Client;
 use League\Flysystem\Config;
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
+use Spatie\Dropbox\Exceptions\BadRequest;
 
 class DropboxAdapter extends AbstractAdapter
 {
@@ -65,7 +66,7 @@ class DropboxAdapter extends AbstractAdapter
 
         try {
             $this->client->move($path, $newPath);
-        } catch (Exception $e) {
+        } catch (BadRequest $e) {
             return false;
         }
 
@@ -82,7 +83,7 @@ class DropboxAdapter extends AbstractAdapter
 
         try {
             $this->client->copy($path, $newpath);
-        } catch (Exception $e) {
+        } catch (BadRequest $e) {
             return false;
         }
 
@@ -98,7 +99,7 @@ class DropboxAdapter extends AbstractAdapter
 
         try {
             $this->client->delete($location);
-        } catch (Exception $e) {
+        } catch (BadRequest $e) {
             return false;
         }
 
@@ -120,9 +121,9 @@ class DropboxAdapter extends AbstractAdapter
     {
         $path = $this->applyPathPrefix($dirname);
 
-        $object = $this->client->createFolder($path);
-
-        if ($object === null) {
+        try {
+            $object = $this->client->createFolder($path);
+        } catch (BadRequest $e) {
             return false;
         }
 
@@ -160,7 +161,11 @@ class DropboxAdapter extends AbstractAdapter
     {
         $path = $this->applyPathPrefix($path);
 
-        $stream = $this->client->download($path);
+        try {
+            $stream = $this->client->download($path);
+        } catch (BadRequest $e) {
+            return false;
+        }
 
         return compact('stream');
     }
@@ -194,7 +199,7 @@ class DropboxAdapter extends AbstractAdapter
 
         try {
             $object = $this->client->getMetadata($path);
-        } catch (Exception $e) {
+        } catch (BadRequest $e) {
             return false;
         }
 
@@ -261,7 +266,11 @@ class DropboxAdapter extends AbstractAdapter
     {
         $path = $this->applyPathPrefix($path);
 
-        $object = $this->client->upload($path, $mode, $contents);
+        try {
+            $object = $this->client->upload($path, $mode, $contents);
+        } catch (BadRequest $e) {
+            return false;
+        }
 
         return $this->normalizeResponse($object);
     }
