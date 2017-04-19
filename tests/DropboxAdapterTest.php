@@ -197,7 +197,7 @@ class DropboxAdapterTest extends TestCase
     public function it_can_rename_stuff()
     {
         $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
-        
+
         $this->assertTrue($this->dropboxAdapter->rename('something', 'something'));
     }
 
