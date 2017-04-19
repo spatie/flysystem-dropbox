@@ -256,9 +256,9 @@ class DropboxAdapter extends AbstractAdapter
     }
 
     /**
-     * @param string           $path
-     * @param resource|string  $contents
-     * @param string           $mode
+     * @param string $path
+     * @param resource|string $contents
+     * @param string $mode
      *
      * @return array|false file metadata
      */
@@ -277,20 +277,21 @@ class DropboxAdapter extends AbstractAdapter
 
     protected function normalizeResponse(array $response): array
     {
-        $result = ['path' => ltrim($this->removePathPrefix($response['path_display']), '/')];
+        $normalizedPath = ltrim($this->removePathPrefix($response['path_display']), '/');
+
+        $normalizedResponse = ['path' => $normalizedPath];
 
         if (isset($response['server_modified'])) {
-            $result['timestamp'] = strtotime($response['server_modified']);
+            $normalizedResponse['timestamp'] = strtotime($response['server_modified']);
         }
 
         if (isset($response['size'])) {
-            $result['bytes'] = $response['size'];
+            $normalizedResponse['bytes'] = $response['size'];
         }
 
-        $result['type'] = $response['.tag'] === 'folder'
-            ? 'dir'
-            : 'file';
+        $type = ($response['.tag'] === 'folder' ? 'dir' : 'file');
+        $normalizedResponse['type'] = $type;
 
-        return $result;
+        return $normalizedResponse;
     }
 }
