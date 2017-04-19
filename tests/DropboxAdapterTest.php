@@ -12,15 +12,6 @@ use Spatie\FlysystemDropbox\DropboxAdapter as Dropbox;
 
 class DropboxAdapterTest extends TestCase
 {
-    public function dropboxProvider()
-    {
-        $mock = $this->prophesize(DropboxClient::class);
-
-        return [
-            [new Dropbox($mock->reveal(), 'prefix'), $mock],
-        ];
-    }
-
     /**
      * @test
      *
@@ -95,16 +86,6 @@ class DropboxAdapterTest extends TestCase
         $this->assertInternalType('array', $result);
         $this->assertArrayHasKey('type', $result);
         $this->assertEquals('file', $result['type']);
-    }
-
-    public function metadataProvider()
-    {
-        return [
-            ['getMetadata'],
-            ['getTimestamp'],
-            ['getSize'],
-            ['has'],
-        ];
     }
 
     /**
@@ -267,5 +248,24 @@ class DropboxAdapterTest extends TestCase
     public function testGetClient($adapter)
     {
         $this->assertInstanceOf(DropboxClient::class, $adapter->getClient());
+    }
+
+    public function dropboxProvider()
+    {
+        $mock = $this->prophesize(DropboxClient::class);
+
+        return [
+            [new Dropbox($mock->reveal(), 'prefix'), $mock],
+        ];
+    }
+
+    public function metadataProvider()
+    {
+        return [
+            ['getMetadata'],
+            ['getTimestamp'],
+            ['getSize'],
+            ['has'],
+        ];
     }
 }
