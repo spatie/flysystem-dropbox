@@ -2,12 +2,12 @@
 
 namespace Spatie\FlysystemDropbox\Test;
 
+use GuzzleHttp\Exception\RequestException;
 use Prophecy\Argument;
 use GuzzleHttp\Psr7\Request;
 use League\Flysystem\Config;
 use PHPUnit\Framework\TestCase;
-use Spatie\FlysystemDropbox\DropboxClient;
-use GuzzleHttp\Exception\BadResponseException;
+use Spatie\Dropbox\Client as DropboxClient;
 use Spatie\FlysystemDropbox\DropboxAdapter as Dropbox;
 
 class DropboxAdapterTest extends TestCase
@@ -128,7 +128,7 @@ class DropboxAdapterTest extends TestCase
     public function testMetadataFileWasMovedFailure()
     {
         $mock = $this->prophesize(DropboxClient::class);
-        $mock->getMetadata('/one')->willThrow(new BadResponseException('ERROR', new Request('POST', '/one')));
+        $mock->getMetadata('/one')->willThrow(RequestException::create(new Request('POST', '')));
 
         $adapter = new Dropbox($mock->reveal());
         $this->assertFalse($adapter->has('one'));
@@ -143,7 +143,7 @@ class DropboxAdapterTest extends TestCase
     {
         $stream = tmpfile();
         fwrite($stream, 'something');
-        $mock->getFile(Argument::any(), Argument::any())->willReturn($stream);
+        $mock->download(Argument::any(), Argument::any())->willReturn($stream);
         $this->assertInternalType('array', $adapter->read('something'));
     }
 
@@ -156,7 +156,7 @@ class DropboxAdapterTest extends TestCase
     {
         $stream = tmpfile();
         fwrite($stream, 'something');
-        $mock->getFile(Argument::any(), Argument::any())->willReturn($stream);
+        $mock->download(Argument::any(), Argument::any())->willReturn($stream);
         $this->assertInternalType('array', $adapter->readStream('something'));
         fclose($stream);
     }
@@ -180,11 +180,13 @@ class DropboxAdapterTest extends TestCase
      */
     public function testCreateDir(Dropbox $adapter, $mock)
     {
-        $mock->createFolder('/prefix/fail/please')->willReturn(null);
+        $mock->createFolder('/prefix/fail/please')->willThrow(RequestException::create(new Request('POST', '')));
         $mock->createFolder('/prefix/pass/please')->willReturn([
             '.tag' => 'folder',
             'path_display'   => '/prefix/pass/please',
         ]);
+
+        $this->expectException(RequestException::class);
 
         $this->assertFalse($adapter->createDir('fail/please', new Config()));
 
@@ -199,7 +201,7 @@ class DropboxAdapterTest extends TestCase
      */
     public function testListContents(Dropbox $adapter, $mock)
     {
-        $mock->listContents(Argument::type('string'), Argument::any())->willReturn(
+        $mock->listFolder(Argument::type('string'), Argument::any())->willReturn(
             ['entries' => [
                 ['.tag' => 'folder', 'path_display' => 'dirname'],
                 ['.tag' => 'file', 'path_display' => 'dirname/file'],
@@ -228,7 +230,7 @@ class DropboxAdapterTest extends TestCase
      */
     public function testRenameFail($adapter, $mock)
     {
-        $mock->move('/prefix/something', '/prefix/something')->willThrow(new BadResponseException('ERROR', new Request('POST', '')));
+        $mock->move('/prefix/something', '/prefix/something')->willThrow(RequestException::create(new Request('POST', '')));
 
         $this->assertFalse($adapter->rename('something', 'something'));
     }
@@ -252,7 +254,7 @@ class DropboxAdapterTest extends TestCase
      */
     public function testCopyFail($adapter, $mock)
     {
-        $mock->copy(Argument::any(), Argument::any())->willThrow(new BadResponseException('ERROR', new Request('POST', '')));
+        $mock->copy(Argument::any(), Argument::any())->willThrow(RequestException::create(new Request('POST', '')));
 
         $this->assertFalse($adapter->copy('something', 'something'));
     }

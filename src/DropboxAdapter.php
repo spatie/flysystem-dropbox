@@ -160,7 +160,7 @@ class DropboxAdapter extends AbstractAdapter
     {
         $path = $this->applyPathPrefix($path);
 
-        $stream = $this->client->getFile($path);
+        $stream = $this->client->download($path);
 
         return compact('stream');
     }
@@ -172,7 +172,7 @@ class DropboxAdapter extends AbstractAdapter
     {
         $location = $this->applyPathPrefix($directory);
 
-        $result = $this->client->listContents($location, $recursive);
+        $result = $this->client->listFolder($location, $recursive);
 
         if (! count($result['entries'])) {
             return [];
@@ -245,7 +245,7 @@ class DropboxAdapter extends AbstractAdapter
         return '/'.ltrim(rtrim($path, '/'), '/');
     }
 
-    public function getClient(): DropboxClient
+    public function getClient(): Client
     {
         return $this->client;
     }
