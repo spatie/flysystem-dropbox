@@ -13,7 +13,7 @@ class DropboxAdapter extends AbstractAdapter
 {
     use NotSupportingVisibilityTrait;
 
-    /** @var \Spatie\FlysystemDropbox\DropboxClient */
+    /** @var \Spatie\Dropbox\Client */
     protected $client;
 
     public function __construct(Client $client, string $prefix = '')
@@ -285,6 +285,7 @@ class DropboxAdapter extends AbstractAdapter
         }
 
         if (isset($response['size'])) {
+            $normalizedResponse['size'] = $response['size'];
             $normalizedResponse['bytes'] = $response['size'];
         }
 
