@@ -182,10 +182,19 @@ class DropboxAdapter extends AbstractAdapter
             return [];
         }
 
-        return array_map(function ($entry) {
+        $cleanedPathDisplay = $this->getCleanedPathDisplay($result['entries']);
+
+        return array_map(function ($entry) use ($cleanedPathDisplay) {
             $path = $this->removePathPrefix($entry['path_display']);
 
-            return $this->normalizeResponse($entry, $path);
+            // use cleaned path display to fix path case
+            foreach ($cleanedPathDisplay as $pathLower => $pathDisplay) {
+                $path = preg_replace('/^'.preg_quote($pathLower, '/').'/i', $pathDisplay, $path);
+            }
+
+            $entry['path_display'] = $path;
+
+            return $this->normalizeResponse($entry);
         }, $result['entries']);
     }
 
@@ -292,5 +301,55 @@ class DropboxAdapter extends AbstractAdapter
         $normalizedResponse['type'] = $type;
 
         return $normalizedResponse;
+    }
+
+    protected function getCleanedPathDisplay($entries)
+    {
+        // init temp associative array that will contains
+        // path lower as key and path display as value
+        $cleanedPathDisplay = [];
+        foreach ($entries as $entry) {
+            // we only need folder paths
+            if ($entry['.tag'] === 'folder') {
+                // add this folder path association to temp array
+                $cleanedPathDisplay[$entry['path_lower']] = $entry['path_display'];
+
+                // search for parent cleaned path display
+                $cleanedPathDisplay = $this->addParentsToCleanedPathDisplay($entry, $cleanedPathDisplay);
+            }
+        }
+
+        // reverse to get deep paths first
+        $cleanedPathDisplay = array_reverse($cleanedPathDisplay);
+
+        return $cleanedPathDisplay;
+    }
+
+    protected function addParentsToCleanedPathDisplay($entry, $cleanedPathDisplay)
+    {
+        // try to find parent paths that we did not know
+        $pathParts = explode('/', $entry['path_lower']);
+        do {
+            // up to parent
+            array_pop($pathParts);
+            $parentPathLower = implode('/', $pathParts);
+
+            // if we did not know this path
+            // get the path display from Dropbox and add it to temp assoc array
+            if (! array_key_exists($parentPathLower, $cleanedPathDisplay)) {
+                $prefixedPath = $this->applyPathPrefix($parentPathLower);
+                $metadata = $this->client->getMetadata($prefixedPath);
+                $cleanedPathDisplay = array_merge(
+                    [$metadata['path_lower'] => $metadata['path_display']],
+                    $cleanedPathDisplay
+                );
+            } else {
+                // if this path is known, parents will do too
+                // so we can stop this loop by emptying path parts
+                $pathParts = [];
+            }
+        } while (count($pathParts) > 2);
+
+        return $cleanedPathDisplay;
     }
 }

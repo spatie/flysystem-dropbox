@@ -183,10 +183,16 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
             ['entries' => [
-                ['.tag' => 'folder', 'path_display' => 'dirname'],
-                ['.tag' => 'file', 'path_display' => 'dirname/file'],
+                ['.tag' => 'folder', 'path_display' => 'Dirname', 'path_lower' => 'dirname'],
+                ['.tag' => 'file', 'path_display' => 'Dirname/file', 'path_lower' => 'dirname/file'],
             ]]
         );
+
+        $this->client->getMetadata(Argument::type('string'))->willReturn([
+            '.tag'   => 'folder',
+            'path_display' => '/prefix',
+            'path_lower' => '/prefix',
+        ]);
 
         $result = $this->dropboxAdapter->listContents('', true);
 
