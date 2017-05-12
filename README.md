@@ -62,6 +62,10 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 If you discover any security related issues, please email freek@spatie.be instead of using the issue tracker.
 
+## Stuck on PHP 5?
+
+This package is PHP 7 only. If you need PHP5 support take a look at [this fork](https://github.com/srmklive/flysystem-dropbox-v2)
+
 ## Credits
 
 - [Alex Vanderbist](https://github.com/AlexVanderbist)
