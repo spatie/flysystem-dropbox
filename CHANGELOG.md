@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 1.0.3 - 2017-05-18
+
+- reverts changes made in 1.0.2
+
 ## 1.0.2 - 2017-05-18
 
 - fix for files with different casings not showing up
