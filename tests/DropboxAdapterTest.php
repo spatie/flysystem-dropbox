@@ -179,18 +179,52 @@ class DropboxAdapterTest extends TestCase
     }
 
     /** @test */
-    public function it_can_list_contents()
+    public function it_can_list_a_single_page_of_contents()
     {
         $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
-            ['entries' => [
-                ['.tag' => 'folder', 'path_display' => 'dirname'],
-                ['.tag' => 'file', 'path_display' => 'dirname/file'],
-            ]]
+            [
+                'entries' => [
+                    ['.tag' => 'folder', 'path_display' => 'dirname'],
+                    ['.tag' => 'file', 'path_display' => 'dirname/file'],
+                ],
+                'has_more' => false,
+            ]
         );
 
         $result = $this->dropboxAdapter->listContents('', true);
 
         $this->assertCount(2, $result);
+    }
+
+    /** @test */
+    public function it_can_list_multiple_pages_of_contents()
+    {
+        $cursor = 'cursor';
+
+        $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
+            [
+                'entries' => [
+                    ['.tag' => 'folder', 'path_display' => 'dirname'],
+                    ['.tag' => 'file', 'path_display' => 'dirname/file'],
+                ],
+                'has_more' => true,
+                'cursor' => $cursor,
+            ]
+        );
+
+        $this->client->listFolderContinue(Argument::exact($cursor))->willReturn(
+            [
+                'entries' => [
+                    ['.tag' => 'folder', 'path_display' => 'dirname2'],
+                    ['.tag' => 'file', 'path_display' => 'dirname2/file2'],
+                ],
+                'has_more' => false,
+            ]
+        );
+
+        $result = $this->dropboxAdapter->listContents('', true);
+
+        $this->assertCount(4, $result);
     }
 
     /** @test */

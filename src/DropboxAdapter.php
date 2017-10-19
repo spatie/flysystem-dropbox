@@ -177,8 +177,14 @@ class DropboxAdapter extends AbstractAdapter
         $location = $this->applyPathPrefix($directory);
 
         $result = $this->client->listFolder($location, $recursive);
+        $entries = $result['entries'];
 
-        if (! count($result['entries'])) {
+        while ($result['has_more']) {
+            $result = $this->client->listFolderContinue($result['cursor']);
+            $entries = array_merge($entries, $result['entries']);
+        }
+
+        if (! count($entries)) {
             return [];
         }
 
@@ -186,7 +192,7 @@ class DropboxAdapter extends AbstractAdapter
             $path = $this->removePathPrefix($entry['path_display']);
 
             return $this->normalizeResponse($entry, $path);
-        }, $result['entries']);
+        }, $entries);
     }
 
     /**
