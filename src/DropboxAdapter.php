@@ -176,7 +176,12 @@ class DropboxAdapter extends AbstractAdapter
     {
         $location = $this->applyPathPrefix($directory);
 
-        $result = $this->client->listFolder($location, $recursive);
+        try {
+            $result = $this->client->listFolder($location, $recursive);
+        } catch (BadRequest $e) {
+            return [];
+        }
+
         $entries = $result['entries'];
 
         while ($result['has_more']) {
