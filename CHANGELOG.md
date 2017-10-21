@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 1.0.5 - 2017-10-21
+
+- do not throw an exception when listing a non-existing directory
+
 ## 1.0.4 - 2017-10-19
 
 - make sure all files are retrieved when calling `listContents`
