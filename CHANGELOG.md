@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 1.0.6 - 2017-11-18
+
+- determine mimetype from filename
+
 ## 1.0.5 - 2017-10-21
 
 - do not throw an exception when listing a non-existing directory
