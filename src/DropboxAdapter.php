@@ -285,9 +285,13 @@ class DropboxAdapter extends AbstractAdapter
 
     protected function normalizeResponse(array $response): array
     {
-        $normalizedPath = ltrim($this->removePathPrefix($response['path_display']), '/');
+        $normalizedPath = ltrim($this->removePathPrefix($response['path_lower']), '/');
 
-        $normalizedResponse = ['path' => $normalizedPath];
+        $normalizedResponse = [
+            'path' => $normalizedPath,
+            'path_display' => ltrim($this->removePathPrefix($response['path_display']), '/'),
+            'name' => $response['name'],
+        ];
 
         if (isset($response['server_modified'])) {
             $normalizedResponse['timestamp'] = strtotime($response['server_modified']);

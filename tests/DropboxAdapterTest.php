@@ -30,7 +30,9 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
+            'name' => 'something',
             'path_display' => '/prefix/something',
+            'path_lower' => '/prefix/something',
             '.tag' => 'file',
         ]);
 
@@ -46,7 +48,9 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
+            'name' => 'something',
             'path_display' => '/prefix/something',
+            'path_lower' => '/prefix/something',
             '.tag' => 'file',
         ]);
 
@@ -62,7 +66,9 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
+            'name' => 'something',
             'path_display' => '/prefix/something',
+            'path_lower' => '/prefix/something',
             '.tag' => 'file',
         ]);
 
@@ -78,7 +84,9 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
+            'name' => 'something',
             'path_display' => '/prefix/something',
+            'path_lower' => '/prefix/something',
             '.tag' => 'file',
         ]);
 
@@ -100,7 +108,9 @@ class DropboxAdapterTest extends TestCase
         $this->client->getMetadata('/one')->willReturn([
             '.tag'   => 'file',
             'server_modified' => '2015-05-12T15:50:38Z',
+            'name' => 'one',
             'path_display' => '/one',
+            'path_lower' => '/one',
         ]);
 
         $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
@@ -169,12 +179,14 @@ class DropboxAdapterTest extends TestCase
         $this->client->createFolder('/prefix/fail/please')->willThrow(new BadRequest(new Response(409)));
         $this->client->createFolder('/prefix/pass/please')->willReturn([
             '.tag' => 'folder',
+            'name' => 'please',
             'path_display'   => '/prefix/pass/please',
+            'path_lower' => '/prefix/pass/please',
         ]);
 
         $this->assertFalse($this->dropboxAdapter->createDir('fail/please', new Config()));
 
-        $expected = ['path' => 'pass/please', 'type' => 'dir'];
+        $expected = ['path' => 'pass/please', 'type' => 'dir', 'name' => 'please', 'path_display' => 'pass/please'];
         $this->assertEquals($expected, $this->dropboxAdapter->createDir('pass/please', new Config()));
     }
 
@@ -184,8 +196,8 @@ class DropboxAdapterTest extends TestCase
         $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
             [
                 'entries' => [
-                    ['.tag' => 'folder', 'path_display' => 'dirname'],
-                    ['.tag' => 'file', 'path_display' => 'dirname/file'],
+                    ['.tag' => 'folder', 'path_display' => 'dirname', 'path_lower' => 'dirname', 'name' => 'dirname'],
+                    ['.tag' => 'file', 'path_display' => 'dirname/file', 'path_lower' => 'dirname/file', 'name' => 'file'],
                 ],
                 'has_more' => false,
             ]
@@ -204,8 +216,8 @@ class DropboxAdapterTest extends TestCase
         $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
             [
                 'entries' => [
-                    ['.tag' => 'folder', 'path_display' => 'dirname'],
-                    ['.tag' => 'file', 'path_display' => 'dirname/file'],
+                    ['.tag' => 'folder', 'path_display' => 'dirname', 'path_lower' => 'dirname', 'name' => 'dirname'],
+                    ['.tag' => 'file', 'path_display' => 'dirname/file', 'path_lower' => 'dirname/file', 'name' => 'file'],
                 ],
                 'has_more' => true,
                 'cursor' => $cursor,
@@ -215,8 +227,8 @@ class DropboxAdapterTest extends TestCase
         $this->client->listFolderContinue(Argument::exact($cursor))->willReturn(
             [
                 'entries' => [
-                    ['.tag' => 'folder', 'path_display' => 'dirname2'],
-                    ['.tag' => 'file', 'path_display' => 'dirname2/file2'],
+                    ['.tag' => 'folder', 'path_display' => 'dirname2', 'path_lower' => 'dirname2', 'name' => 'dirname2'],
+                    ['.tag' => 'file', 'path_display' => 'dirname2/file2', 'path_lower' => 'dirname2/file2', 'name' => 'file2'],
                 ],
                 'has_more' => false,
             ]
@@ -228,9 +240,35 @@ class DropboxAdapterTest extends TestCase
     }
 
     /** @test */
+    public function it_lists_the_paths_in_lower_case_and_the_returns_the_names_in_the_correct_case()
+    {
+        $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
+            [
+                'entries' => [
+                    ['.tag' => 'folder', 'path_display' => '/prefix/dirname', 'path_lower' => '/prefix/dirname', 'name' => 'Dirname'],
+                    ['.tag' => 'file', 'path_display' => '/prefix/Dirname/File', 'path_lower' => '/prefix/dirname/file', 'name' => 'File'],
+                ],
+                'has_more' => false,
+            ]
+        );
+
+        $result = $this->dropboxAdapter->listContents('', true);
+
+        $this->assertCount(2, $result);
+
+        $this->assertEquals($result[0]['name'], 'Dirname');
+        $this->assertEquals($result[0]['path'], 'dirname');
+        $this->assertEquals($result[0]['path_display'], 'dirname');
+
+        $this->assertEquals($result[1]['name'], 'File');
+        $this->assertEquals($result[1]['path'], 'dirname/file');
+        $this->assertEquals($result[1]['path_display'], 'Dirname/File');
+    }
+
+    /** @test */
     public function it_can_rename_stuff()
     {
-        $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
+        $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something', 'path_lower' => 'something', 'name' => 'something']);
 
         $this->assertTrue($this->dropboxAdapter->rename('something', 'something'));
     }
