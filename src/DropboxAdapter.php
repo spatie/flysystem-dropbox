@@ -194,9 +194,7 @@ class DropboxAdapter extends AbstractAdapter
         }
 
         return array_map(function ($entry) {
-            $path = $this->removePathPrefix($entry['path_display']);
-
-            return $this->normalizeResponse($entry, $path);
+            return $this->normalizeResponse($entry);
         }, $entries);
     }
 
