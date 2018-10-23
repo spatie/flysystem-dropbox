@@ -244,6 +244,11 @@ class DropboxAdapter extends AbstractAdapter
     {
         return $this->client->getTemporaryLink($path);
     }
+    
+    public function getTemporaryUrl(string $path): string
+    {
+        return $this->getTemporaryLink($path);
+    }
 
     public function getThumbnail(string $path, string $format = 'jpeg', string $size = 'w64h64')
     {
