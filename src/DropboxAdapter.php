@@ -244,7 +244,7 @@ class DropboxAdapter extends AbstractAdapter
     {
         return $this->client->getTemporaryLink($path);
     }
-    
+
     public function getTemporaryUrl(string $path): string
     {
         return $this->getTemporaryLink($path);
