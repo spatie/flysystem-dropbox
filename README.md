@@ -35,7 +35,7 @@ $adapter = new DropboxAdapter($client);
 
 $filesystem = new Filesystem($adapter);
 ```
-For Laravel project more info at [Laravel Custom Filesystems] (https://laravel.com/docs/5.7/filesystem#custom-filesystems/)
+For Laravel project more info at [Laravel Custom Filesystems](https://laravel.com/docs/5.7/filesystem#custom-filesystems/)
 
 ## Changelog
 
