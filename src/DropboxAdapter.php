@@ -254,7 +254,12 @@ class DropboxAdapter extends AbstractAdapter
     {
         return $this->client->getThumbnail($path, $format, $size);
     }
-
+    
+    public function createSharedLinkWithSettings($path, $settings)
+    {
+        return $this->createSharedLinkWithSettings($path, $settings);
+    }
+    
     /**
      * {@inheritdoc}
      */
