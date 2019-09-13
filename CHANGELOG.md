@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 1.2.0 - 2019-09-13
+
+- add `getUrl` method
+
 ## 1.1.0 - 2019-05-31
 
 - add `createSharedLinkWithSettings`
