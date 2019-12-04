@@ -262,7 +262,7 @@ class DropboxAdapter extends AbstractAdapter
 
     public function createSharedLinkWithSettings($path, $settings)
     {
-        return $this->createSharedLinkWithSettings($path, $settings);
+        return $this->client->createSharedLinkWithSettings($path, $settings);
     }
 
     /**
