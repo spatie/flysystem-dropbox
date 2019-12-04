@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 1.2.2 - 2019-12-04
+
+- fix `createSharedLinkWithSettings`
+
 ## 1.2.1 - 2019-09-14
 
 - fix minimum dep
