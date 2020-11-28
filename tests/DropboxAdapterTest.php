@@ -270,7 +270,7 @@ class DropboxAdapterTest extends TestCase
 
     private function assertIsArrayType($input)
     {
-        if (is_callable(TestCase::class, 'assertIsArray')) {
+        if (method_exists(TestCase::class, 'assertIsArray')) {
             $this->assertIsArray($input);
         } else {
             $this->assertInternalType('array', $input);
