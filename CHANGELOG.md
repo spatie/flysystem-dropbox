@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 1.2.3 - 2020-12-27
+
+- add support for PHP 8
+
 ## 1.2.2 - 2019-12-04
 
 - fix `createSharedLinkWithSettings`
