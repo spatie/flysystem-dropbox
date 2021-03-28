@@ -4,6 +4,7 @@ namespace Spatie\FlysystemDropbox\Test;
 
 use GuzzleHttp\Psr7\Response;
 use League\Flysystem;
+use League\Flysystem\StorageAttributes;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -21,17 +22,17 @@ class DropboxAdapterTest extends TestCase
     /** @var \Spatie\FlysystemDropbox\DropboxAdapter */
     protected $dropboxAdapter;
 
-    /**
-     * @before
-     */
-    public function setUpTest(): void
+    public function setUp(): void
     {
+        parent::setUp();
+
         $this->client = $this->prophesize(Client::class);
 
         $this->dropboxAdapter = new DropboxAdapter($this->client->reveal(), 'prefix');
     }
 
-    public function testWrite(): void
+    /** @test */
+    public function if_can_write()
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
@@ -43,7 +44,8 @@ class DropboxAdapterTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testWriteStream(): void
+    /** @test */
+    public function if_can_write_to_a_stream()
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
@@ -56,9 +58,11 @@ class DropboxAdapterTest extends TestCase
     }
 
     /**
+     * @test
+     *
      * @dataProvider  metadataProvider
      */
-    public function testMetadataCalls($method): void
+    public function it_can_work_with_meta_date($method)
     {
         $this->client = $this->prophesize(Client::class);
         $this->client->getMetadata('/one')->willReturn([
@@ -69,8 +73,8 @@ class DropboxAdapterTest extends TestCase
 
         $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
 
-        self::assertInstanceOf(
-            Flysystem\StorageAttributes::class,
+        $this->assertInstanceOf(
+            StorageAttributes::class,
             $this->dropboxAdapter->{$method}('one')
         );
     }
@@ -85,7 +89,8 @@ class DropboxAdapterTest extends TestCase
         ];
     }
 
-    public function testRead(): void
+    /** @test */
+    public function it_can_read()
     {
         $stream = tmpfile();
         fwrite($stream, 'returndata');
@@ -93,13 +98,14 @@ class DropboxAdapterTest extends TestCase
 
         $this->client->download(Argument::any(), Argument::any())->willReturn($stream);
 
-        self::assertStringContainsString(
+        $this->assertStringContainsString(
             'returndata',
             $this->dropboxAdapter->read('something')
         );
     }
 
-    public function testReadStream(): void
+    /** @test */
+    public function it_can_read_a_stream()
     {
         $stream = tmpfile();
         fwrite($stream, 'returndata');
@@ -107,12 +113,13 @@ class DropboxAdapterTest extends TestCase
 
         $this->client->download(Argument::any(), Argument::any())->willReturn($stream);
 
-        self::assertIsResource($this->dropboxAdapter->readStream('something'));
+        $this->assertIsResource($this->dropboxAdapter->readStream('something'));
 
         fclose($stream);
     }
 
-    public function testDelete(): void
+    /** @test */
+    public function it_can_delete()
     {
         $this->client->delete('/prefix/something')->willReturn(['.tag' => 'file']);
 
@@ -123,7 +130,8 @@ class DropboxAdapterTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testCreateDirectory(): void
+    /** @test */
+    public function it_can_create_a_directory()
     {
         $this->client->createFolder('/prefix/fail/please')->willThrow(new BadRequest(new Response(409)));
         $this->client->createFolder('/prefix/pass/please')->willReturn([
@@ -138,7 +146,8 @@ class DropboxAdapterTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testListContents(): void
+    /** @test */
+    public function it_can_list_contents_of_a_directory()
     {
         $cursor = 'cursor';
 
@@ -164,10 +173,11 @@ class DropboxAdapterTest extends TestCase
         );
 
         $result = $this->dropboxAdapter->listContents('', true);
-        self::assertCount(4, $result);
+        $this->assertCount(4, $result);
     }
 
-    public function testMove(): void
+    /** @test */
+    public function it_can_move_a_file()
     {
         $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
 
@@ -175,7 +185,8 @@ class DropboxAdapterTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testMoveFail(): void
+    /** @test */
+    public function it_can_handle_a_failing_move()
     {
         $this->client->move('/prefix/something', '/prefix/something')->willThrow(new BadRequest(new Response(409)));
 
@@ -183,7 +194,8 @@ class DropboxAdapterTest extends TestCase
         $this->dropboxAdapter->move('something', 'something', new Flysystem\Config());
     }
 
-    public function testCopy(): void
+    /** @test */
+    public function it_can_copy()
     {
         $this->client->copy(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
 
@@ -191,7 +203,7 @@ class DropboxAdapterTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testCopyFail(): void
+    public function it_can_handle_a_failing_copy()
     {
         $this->client->copy(Argument::any(), Argument::any())->willThrow(new BadRequest(new Response(409)));
 
@@ -199,9 +211,9 @@ class DropboxAdapterTest extends TestCase
         $this->dropboxAdapter->copy('something', 'something', new Flysystem\Config());
     }
 
-    public function testGetClient(): void
+    public function testGetClient()
     {
-        self::assertInstanceOf(
+        $this->assertInstanceOf(
             Client::class,
             $this->dropboxAdapter->getClient()
         );

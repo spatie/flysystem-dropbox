@@ -3,6 +3,19 @@
 namespace Spatie\FlysystemDropbox;
 
 use League\Flysystem;
+use League\Flysystem\Config;
+use League\Flysystem\DirectoryAttributes;
+use League\Flysystem\FileAttributes;
+use League\Flysystem\PathPrefixer;
+use League\Flysystem\StorageAttributes;
+use League\Flysystem\UnableToCopyFile;
+use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToDeleteFile;
+use League\Flysystem\UnableToMoveFile;
+use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToRetrieveMetadata;
+use League\Flysystem\UnableToSetVisibility;
+use League\Flysystem\UnableToWriteFile;
 use League\MimeTypeDetection\FinfoMimeTypeDetector;
 use League\MimeTypeDetection\MimeTypeDetector;
 use Spatie\Dropbox\Client;
@@ -10,13 +23,13 @@ use Spatie\Dropbox\Exceptions\BadRequest;
 
 class DropboxAdapter implements Flysystem\FilesystemAdapter
 {
-    /** @var Client */
+    /** @var \Spatie\Dropbox\Client */
     protected $client;
 
-    /** @var Flysystem\PathPrefixer */
+    /** @var \League\Flysystem\PathPrefixer */
     protected $prefixer;
 
-    /** @var MimeTypeDetector */
+    /** @var \League\MimeTypeDetection\MimeTypeDetector */
     protected $mimeTypeDetector;
 
     public function __construct(
@@ -25,7 +38,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         MimeTypeDetector $mimeTypeDetector = null
     ) {
         $this->client = $client;
-        $this->prefixer = new Flysystem\PathPrefixer($prefix);
+        $this->prefixer = new PathPrefixer($prefix);
         $this->mimeTypeDetector = $mimeTypeDetector ?: new FinfoMimeTypeDetector();
     }
 
@@ -41,7 +54,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         try {
             $this->client->getMetadata($location);
             return true;
-        } catch (BadRequest $e) {
+        } catch (BadRequest $exception) {
             return false;
         }
     }
@@ -49,28 +62,28 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function write(string $path, string $contents, Flysystem\Config $config): void
+    public function write(string $path, string $contents, Config $config): void
     {
         $location = $this->applyPathPrefix($path);
 
         try {
             $this->client->upload($path, $contents, 'overwrite');
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
+            throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
         }
     }
 
     /**
      * @inheritDoc
      */
-    public function writeStream(string $path, $contents, Flysystem\Config $config): void
+    public function writeStream(string $path, $contents, Config $config): void
     {
         $location = $this->applyPathPrefix($path);
 
         try {
             $this->client->upload($path, $contents, 'overwrite');
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
+            throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
         }
     }
 
@@ -80,11 +93,11 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     public function read(string $path): string
     {
         if (! $object = $this->readStream($path)) {
-            throw Flysystem\UnableToReadFile::fromLocation($path);
+            throw UnableToReadFile::fromLocation($path);
         }
 
         if (!is_resource($object)) {
-            throw Flysystem\UnableToReadFile::fromLocation($path);
+            throw UnableToReadFile::fromLocation($path);
         }
 
         $contents = stream_get_contents($object);
@@ -120,7 +133,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         try {
             $this->client->delete($location);
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToDeleteFile::atLocation($path, $e->getMessage(), $e);
+            throw UnableToDeleteFile::atLocation($path, $e->getMessage(), $e);
         }
     }
 
@@ -131,7 +144,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     {
         try {
             $this->delete($path);
-        } catch(Flysystem\UnableToDeleteFile $e) {
+        } catch(UnableToDeleteFile $e) {
             throw Flysystem\UnableToDeleteDirectory::atLocation($path, $e->getPrevious()->getMessage(), $e);
         }
     }
@@ -139,14 +152,14 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function createDirectory(string $path, Flysystem\Config $config): void
+    public function createDirectory(string $path, Config $config): void
     {
         $path = $this->applyPathPrefix($path);
 
         try {
             $this->client->createFolder($path);
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToCreateDirectory::atLocation($path, $e->getMessage());
+            throw UnableToCreateDirectory::atLocation($path, $e->getMessage());
         }
     }
 
@@ -155,24 +168,24 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
      */
     public function setVisibility(string $path, string $visibility): void
     {
-        throw Flysystem\UnableToSetVisibility::atLocation($path, 'Adapter does not support visibility controls.');
+        throw UnableToSetVisibility::atLocation($path, 'Adapter does not support visibility controls.');
     }
 
     /**
      * @inheritDoc
      */
-    public function visibility(string $path): Flysystem\FileAttributes
+    public function visibility(string $path): FileAttributes
     {
         // Noop
-        return new Flysystem\FileAttributes($path);
+        return new FileAttributes($path);
     }
 
     /**
      * @inheritDoc
      */
-    public function mimeType(string $path): Flysystem\FileAttributes
+    public function mimeType(string $path): FileAttributes
     {
-        return new Flysystem\FileAttributes(
+        return new FileAttributes(
             $path,
             null,
             null,
@@ -184,19 +197,19 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function lastModified(string $path): Flysystem\FileAttributes
+    public function lastModified(string $path): FileAttributes
     {
         $location = $this->applyPathPrefix($path);
 
         try {
             $response = $this->client->getMetadata($location);
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
+            throw UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
         }
 
         $timestamp = (isset($response['server_modified'])) ? strtotime($response['server_modified']) : null;
 
-        return new Flysystem\FileAttributes(
+        return new FileAttributes(
             $path,
             null,
             null,
@@ -207,17 +220,17 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function fileSize(string $path): Flysystem\FileAttributes
+    public function fileSize(string $path): FileAttributes
     {
         $location = $this->applyPathPrefix($path);
 
         try {
             $response = $this->client->getMetadata($location);
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
+            throw UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
         }
 
-        return new Flysystem\FileAttributes(
+        return new FileAttributes(
             $path,
             $response['size'] ?? null
         );
@@ -251,14 +264,14 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         }, $entries);
     }
 
-    protected function normalizeResponse(array $response): Flysystem\StorageAttributes
+    protected function normalizeResponse(array $response): StorageAttributes
     {
         $timestamp = (isset($response['server_modified'])) ? strtotime($response['server_modified']) : null;
 
         if ($response['.tag'] === 'folder') {
             $normalizedPath = $this->prefixer->stripDirectoryPrefix($response['path_display']);
 
-            return new Flysystem\DirectoryAttributes(
+            return new DirectoryAttributes(
                 $normalizedPath,
                 null,
                 $timestamp
@@ -267,7 +280,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
 
         $normalizedPath = $this->prefixer->stripPrefix($response['path_display']);
 
-        return new Flysystem\FileAttributes(
+        return new FileAttributes(
             $normalizedPath,
             $response['size'] ?? null,
             null,
@@ -279,7 +292,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function move(string $source, string $destination, Flysystem\Config $config): void
+    public function move(string $source, string $destination, Config $config): void
     {
         $path = $this->applyPathPrefix($source);
         $newPath = $this->applyPathPrefix($destination);
@@ -287,14 +300,14 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         try {
             $this->client->move($path, $newPath);
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToMoveFile::fromLocationTo($path, $newPath, $e);
+            throw UnableToMoveFile::fromLocationTo($path, $newPath, $e);
         }
     }
 
     /**
      * @inheritDoc
      */
-    public function copy(string $source, string $destination, Flysystem\Config $config): void
+    public function copy(string $source, string $destination, Config $config): void
     {
         $path = $this->applyPathPrefix($source);
         $newPath = $this->applyPathPrefix($destination);
@@ -302,7 +315,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         try {
             $this->client->copy($path, $newPath);
         } catch (BadRequest $e) {
-            throw Flysystem\UnableToCopyFile::fromLocationTo($path, $newPath, $e);
+            throw UnableToCopyFile::fromLocationTo($path, $newPath, $e);
         }
     }
 
