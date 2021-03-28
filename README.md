@@ -32,7 +32,7 @@ composer require spatie/flysystem-dropbox
 
 The first thing you need to do is get an authorization token at Dropbox. A token can be generated in the [App Console](https://www.dropbox.com/developers/apps) for any Dropbox API app. You'll find more info at [the Dropbox Developer Blog](https://blogs.dropbox.com/developers/2014/05/generate-an-access-token-for-your-own-account/).
 
-``` php
+```php
 use League\Flysystem\Filesystem;
 use Spatie\Dropbox\Client;
 use Spatie\FlysystemDropbox\DropboxAdapter;
@@ -43,6 +43,7 @@ $adapter = new DropboxAdapter($client);
 
 $filesystem = new Filesystem($adapter, ['case_sensitive' => false]);
 ```
+
 Note: Because Dropbox is not case-sensitive you’ll need to set the 'case_sensitive' option to false.
 
 ## Changelog
