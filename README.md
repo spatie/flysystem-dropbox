@@ -1,11 +1,14 @@
 # Flysystem v2 adapter for the Dropbox API
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/flysystem-dropbox.svg?style=flat-square)](https://packagist.org/packages/spatie/flysystem-dropbox)
-[![Build Status](https://img.shields.io/travis/spatie/flysystem-dropbox/master.svg?style=flat-square)](https://travis-ci.org/spatie/flysystem-dropbox)
-[![Quality Score](https://img.shields.io/scrutinizer/g/spatie/flysystem-dropbox.svg?style=flat-square)](https://scrutinizer-ci.com/g/spatie/flysystem-dropbox)
+[![Tests](https://github.com/spatie/flysystem-dropbox/actions/workflows/run-tests.yml/badge.svg)](https://github.com/spatie/flysystem-dropbox/actions/workflows/run-tests.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/spatie/flysystem-dropbox.svg?style=flat-square)](https://packagist.org/packages/spatie/flysystem-dropbox)
 
 This package contains a [Flysystem v2](https://flysystem.thephpleague.com/) adapter for Dropbox. Under the hood, the [Dropbox API v2](https://www.dropbox.com/developers/documentation/http/overview) is used.
+
+## Using Flystem v1
+
+If you're stuck on Flysystem v1, then use [v1 of flystem-dropbox](https://github.com/spatie/flysystem-dropbox/tree/v1).
 
 ## Support us
 
