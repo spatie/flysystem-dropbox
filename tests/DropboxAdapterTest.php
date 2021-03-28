@@ -4,7 +4,10 @@ namespace Spatie\FlysystemDropbox\Test;
 
 use GuzzleHttp\Psr7\Response;
 use League\Flysystem;
+use League\Flysystem\Config;
 use League\Flysystem\StorageAttributes;
+use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToMoveFile;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -40,7 +43,7 @@ class DropboxAdapterTest extends TestCase
             '.tag' => 'file',
         ]);
 
-        $this->dropboxAdapter->write('something', 'contents', new Flysystem\Config());
+        $this->dropboxAdapter->write('something', 'contents', new Config());
         $this->addToAssertionCount(1);
     }
 
@@ -53,7 +56,7 @@ class DropboxAdapterTest extends TestCase
             '.tag' => 'file',
         ]);
 
-        $this->dropboxAdapter->writeStream('something', tmpfile(), new Flysystem\Config());
+        $this->dropboxAdapter->writeStream('something', tmpfile(), new Config());
         $this->addToAssertionCount(1);
     }
 
@@ -139,10 +142,10 @@ class DropboxAdapterTest extends TestCase
             'path_display'   => '/prefix/pass/please',
         ]);
 
-        $this->expectException(Flysystem\UnableToCreateDirectory::class);
-        $this->dropboxAdapter->createDirectory('fail/please', new Flysystem\Config());
+        $this->expectException(UnableToCreateDirectory::class);
+        $this->dropboxAdapter->createDirectory('fail/please', new Config());
 
-        $this->dropboxAdapter->createDirectory('pass/please', new Flysystem\Config());
+        $this->dropboxAdapter->createDirectory('pass/please', new Config());
         $this->addToAssertionCount(1);
     }
 
@@ -181,7 +184,7 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
 
-        $this->dropboxAdapter->move('something', 'something', new Flysystem\Config());
+        $this->dropboxAdapter->move('something', 'something', new Config());
         $this->addToAssertionCount(1);
     }
 
@@ -190,16 +193,19 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client->move('/prefix/something', '/prefix/something')->willThrow(new BadRequest(new Response(409)));
 
-        $this->expectException(Flysystem\UnableToMoveFile::class);
-        $this->dropboxAdapter->move('something', 'something', new Flysystem\Config());
+        $this->expectException(UnableToMoveFile::class);
+        $this->dropboxAdapter->move('something', 'something', new Config());
     }
 
     /** @test */
     public function it_can_copy()
     {
-        $this->client->copy(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
+        $this->client->copy(
+            Argument::type('string'),
+            Argument::type('string')
+        )->willReturn(['.tag' => 'file', 'path' => 'something']);
 
-        $this->dropboxAdapter->copy('something', 'something', new Flysystem\Config());
+        $this->dropboxAdapter->copy('something', 'something', new Config());
         $this->addToAssertionCount(1);
     }
 
@@ -208,7 +214,7 @@ class DropboxAdapterTest extends TestCase
         $this->client->copy(Argument::any(), Argument::any())->willThrow(new BadRequest(new Response(409)));
 
         $this->expectException(Flysystem\UnableToCopyFile::class);
-        $this->dropboxAdapter->copy('something', 'something', new Flysystem\Config());
+        $this->dropboxAdapter->copy('something', 'something', new Config());
     }
 
     public function testGetClient()
