@@ -21,12 +21,12 @@
     ],
     "require": {
         "php": ">7.2 || ^8.0",
-        "league/flysystem": "^2.0",
-        "spatie/dropbox-api": "^1.1.0"
+        "league/flysystem": "^2.0.4",
+        "spatie/dropbox-api": "^1.17.1"
     },
     "require-dev": {
-        "phpspec/prophecy-phpunit": "^2.0",
-        "phpunit/phpunit": "^9.4.3"
+        "phpspec/prophecy-phpunit": "^2.0.1",
+        "phpunit/phpunit": "^9.5.4"
     },
     "autoload": {
         "psr-4": {
