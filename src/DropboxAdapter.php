@@ -40,6 +40,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
 
         try {
             $this->client->getMetadata($location);
+
             return true;
         } catch (BadRequest $e) {
             return false;
@@ -83,7 +84,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
             throw Flysystem\UnableToReadFile::fromLocation($path);
         }
 
-        if (!is_resource($object)) {
+        if (! is_resource($object)) {
             throw Flysystem\UnableToReadFile::fromLocation($path);
         }
 
@@ -131,7 +132,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     {
         try {
             $this->delete($path);
-        } catch(Flysystem\UnableToDeleteFile $e) {
+        } catch (Flysystem\UnableToDeleteFile $e) {
             throw Flysystem\UnableToDeleteDirectory::atLocation($path, $e->getPrevious()->getMessage(), $e);
         }
     }
@@ -242,7 +243,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
             $entries = array_merge($entries, $result['entries']);
         }
 
-        if (!count($entries)) {
+        if (! count($entries)) {
             return [];
         }
 
