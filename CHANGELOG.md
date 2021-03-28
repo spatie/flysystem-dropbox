@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 2.0.0 - 2021-03-28
+
+- add support from Flysystem v2
+
 ## 1.2.3 - 2020-12-27
 
 - add support for PHP 8
