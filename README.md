@@ -8,7 +8,7 @@ This package contains a [Flysystem v2](https://flysystem.thephpleague.com/) adap
 
 ## Using Flystem v1
 
-If you're stuck on Flysystem v1, then use [v1 of flysystem-dropbox](https://github.com/spatie/flysystem-dropbox/tree/v1).
+If you're using Flysystem v1, then use [v1 of flysystem-dropbox](https://github.com/spatie/flysystem-dropbox/tree/v1).
 
 ## Support us
 
