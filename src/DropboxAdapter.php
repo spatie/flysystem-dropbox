@@ -3,8 +3,6 @@
 namespace Spatie\FlysystemDropbox;
 
 use League\Flysystem;
-use League\Flysystem\Config;
-use League\Flysystem\FileAttributes;
 use League\MimeTypeDetection\FinfoMimeTypeDetector;
 use League\MimeTypeDetection\MimeTypeDetector;
 use Spatie\Dropbox\Client;
@@ -163,18 +161,18 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function visibility(string $path): FileAttributes
+    public function visibility(string $path): Flysystem\FileAttributes
     {
         // Noop
-        return new FileAttributes($path);
+        return new Flysystem\FileAttributes($path);
     }
 
     /**
      * @inheritDoc
      */
-    public function mimeType(string $path): FileAttributes
+    public function mimeType(string $path): Flysystem\FileAttributes
     {
-        return new FileAttributes(
+        return new Flysystem\FileAttributes(
             $path,
             null,
             null,
@@ -186,7 +184,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function lastModified(string $path): FileAttributes
+    public function lastModified(string $path): Flysystem\FileAttributes
     {
         $location = $this->applyPathPrefix($path);
 
@@ -198,7 +196,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
 
         $timestamp = (isset($response['server_modified'])) ? strtotime($response['server_modified']) : null;
 
-        return new FileAttributes(
+        return new Flysystem\FileAttributes(
             $path,
             null,
             null,
@@ -209,7 +207,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function fileSize(string $path): FileAttributes
+    public function fileSize(string $path): Flysystem\FileAttributes
     {
         $location = $this->applyPathPrefix($path);
 
@@ -219,7 +217,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
             throw Flysystem\UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
         }
 
-        return new FileAttributes(
+        return new Flysystem\FileAttributes(
             $path,
             $response['size'] ?? null
         );
@@ -281,7 +279,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function move(string $source, string $destination, Config $config): void
+    public function move(string $source, string $destination, Flysystem\Config $config): void
     {
         $path = $this->applyPathPrefix($source);
         $newPath = $this->applyPathPrefix($destination);
@@ -296,7 +294,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
-    public function copy(string $source, string $destination, Config $config): void
+    public function copy(string $source, string $destination, Flysystem\Config $config): void
     {
         $path = $this->applyPathPrefix($source);
         $newPath = $this->applyPathPrefix($destination);
