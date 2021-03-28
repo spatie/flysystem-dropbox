@@ -2,161 +2,116 @@
 
 namespace Spatie\FlysystemDropbox;
 
-use League\Flysystem\Adapter\AbstractAdapter;
-use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
+use League\Flysystem;
 use League\Flysystem\Config;
-use League\Flysystem\Util\MimeType;
+use League\Flysystem\DirectoryAttributes;
+use League\Flysystem\FileAttributes;
+use League\Flysystem\PathPrefixer;
+use League\Flysystem\StorageAttributes;
+use League\Flysystem\UnableToCopyFile;
+use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToDeleteFile;
+use League\Flysystem\UnableToMoveFile;
+use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToRetrieveMetadata;
+use League\Flysystem\UnableToSetVisibility;
+use League\Flysystem\UnableToWriteFile;
+use League\MimeTypeDetection\FinfoMimeTypeDetector;
+use League\MimeTypeDetection\MimeTypeDetector;
 use Spatie\Dropbox\Client;
 use Spatie\Dropbox\Exceptions\BadRequest;
 
-class DropboxAdapter extends AbstractAdapter
+class DropboxAdapter implements Flysystem\FilesystemAdapter
 {
-    use NotSupportingVisibilityTrait;
-
     /** @var \Spatie\Dropbox\Client */
     protected $client;
 
-    public function __construct(Client $client, string $prefix = '')
-    {
+    /** @var \League\Flysystem\PathPrefixer */
+    protected $prefixer;
+
+    /** @var \League\MimeTypeDetection\MimeTypeDetector */
+    protected $mimeTypeDetector;
+
+    public function __construct(
+        Client $client,
+        string $prefix = '',
+        MimeTypeDetector $mimeTypeDetector = null
+    ) {
         $this->client = $client;
-
-        $this->setPathPrefix($prefix);
+        $this->prefixer = new PathPrefixer($prefix);
+        $this->mimeTypeDetector = $mimeTypeDetector ?: new FinfoMimeTypeDetector();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function write($path, $contents, Config $config)
+    public function getClient(): Client
     {
-        return $this->upload($path, $contents, 'add');
+        return $this->client;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function writeStream($path, $resource, Config $config)
-    {
-        return $this->upload($path, $resource, 'add');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function update($path, $contents, Config $config)
-    {
-        return $this->upload($path, $contents, 'overwrite');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function updateStream($path, $resource, Config $config)
-    {
-        return $this->upload($path, $resource, 'overwrite');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rename($path, $newPath): bool
-    {
-        $path = $this->applyPathPrefix($path);
-        $newPath = $this->applyPathPrefix($newPath);
-
-        try {
-            $this->client->move($path, $newPath);
-        } catch (BadRequest $e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function copy($path, $newpath): bool
-    {
-        $path = $this->applyPathPrefix($path);
-        $newpath = $this->applyPathPrefix($newpath);
-
-        try {
-            $this->client->copy($path, $newpath);
-        } catch (BadRequest $e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function delete($path): bool
+    public function fileExists(string $path): bool
     {
         $location = $this->applyPathPrefix($path);
 
         try {
-            $this->client->delete($location);
-        } catch (BadRequest $e) {
+            $this->client->getMetadata($location);
+
+            return true;
+        } catch (BadRequest $exception) {
             return false;
         }
-
-        return true;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function deleteDir($dirname): bool
+    public function write(string $path, string $contents, Config $config): void
     {
-        return $this->delete($dirname);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createDir($dirname, Config $config)
-    {
-        $path = $this->applyPathPrefix($dirname);
+        $location = $this->applyPathPrefix($path);
 
         try {
-            $object = $this->client->createFolder($path);
+            $this->client->upload($path, $contents, 'overwrite');
         } catch (BadRequest $e) {
-            return false;
+            throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
         }
-
-        return $this->normalizeResponse($object);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function has($path)
+    public function writeStream(string $path, $contents, Config $config): void
     {
-        return $this->getMetadata($path);
+        $location = $this->applyPathPrefix($path);
+
+        try {
+            $this->client->upload($path, $contents, 'overwrite');
+        } catch (BadRequest $e) {
+            throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function read($path)
+    public function read(string $path): string
     {
         if (! $object = $this->readStream($path)) {
-            return false;
+            throw UnableToReadFile::fromLocation($path);
         }
 
-        $object['contents'] = stream_get_contents($object['stream']);
-        fclose($object['stream']);
-        unset($object['stream']);
+        if (! is_resource($object)) {
+            throw UnableToReadFile::fromLocation($path);
+        }
 
-        return $object;
+        $contents = stream_get_contents($object);
+        fclose($object);
+        unset($object);
+
+        return $contents;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function readStream($path)
+    public function readStream(string $path)
     {
         $path = $this->applyPathPrefix($path);
 
@@ -166,24 +121,136 @@ class DropboxAdapter extends AbstractAdapter
             return false;
         }
 
-        return compact('stream');
+        return $stream;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function listContents($directory = '', $recursive = false): array
+    public function delete(string $path): void
     {
-        $location = $this->applyPathPrefix($directory);
+        $location = $this->applyPathPrefix($path);
 
         try {
-            $result = $this->client->listFolder($location, $recursive);
+            $this->client->delete($location);
+        } catch (BadRequest $e) {
+            throw UnableToDeleteFile::atLocation($path, $e->getMessage(), $e);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function deleteDirectory(string $path): void
+    {
+        try {
+            $this->delete($path);
+        } catch (UnableToDeleteFile $e) {
+            throw Flysystem\UnableToDeleteDirectory::atLocation($path, $e->getPrevious()->getMessage(), $e);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createDirectory(string $path, Config $config): void
+    {
+        $path = $this->applyPathPrefix($path);
+
+        try {
+            $this->client->createFolder($path);
+        } catch (BadRequest $e) {
+            throw UnableToCreateDirectory::atLocation($path, $e->getMessage());
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setVisibility(string $path, string $visibility): void
+    {
+        throw UnableToSetVisibility::atLocation($path, 'Adapter does not support visibility controls.');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function visibility(string $path): FileAttributes
+    {
+        // Noop
+        return new FileAttributes($path);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function mimeType(string $path): FileAttributes
+    {
+        return new FileAttributes(
+            $path,
+            null,
+            null,
+            null,
+            $this->mimeTypeDetector->detectMimeTypeFromPath($path)
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function lastModified(string $path): FileAttributes
+    {
+        $location = $this->applyPathPrefix($path);
+
+        try {
+            $response = $this->client->getMetadata($location);
+        } catch (BadRequest $e) {
+            throw UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
+        }
+
+        $timestamp = (isset($response['server_modified'])) ? strtotime($response['server_modified']) : null;
+
+        return new FileAttributes(
+            $path,
+            null,
+            null,
+            $timestamp
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function fileSize(string $path): FileAttributes
+    {
+        $location = $this->applyPathPrefix($path);
+
+        try {
+            $response = $this->client->getMetadata($location);
+        } catch (BadRequest $e) {
+            throw UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
+        }
+
+        return new FileAttributes(
+            $path,
+            $response['size'] ?? null
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function listContents(string $path = '', bool $deep = false): array
+    {
+        $location = $this->applyPathPrefix($path);
+
+        try {
+            $result = $this->client->listFolder($location, $path);
         } catch (BadRequest $e) {
             return [];
         }
 
         $entries = $result['entries'];
-
         while ($result['has_more']) {
             $result = $this->client->listFolderContinue($result['cursor']);
             $entries = array_merge($entries, $result['entries']);
@@ -194,130 +261,67 @@ class DropboxAdapter extends AbstractAdapter
         }
 
         return array_map(function ($entry) {
-            $path = $this->removePathPrefix($entry['path_display']);
-
-            return $this->normalizeResponse($entry, $path);
+            return $this->normalizeResponse($entry);
         }, $entries);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getMetadata($path)
+    protected function normalizeResponse(array $response): StorageAttributes
     {
-        $path = $this->applyPathPrefix($path);
+        $timestamp = (isset($response['server_modified'])) ? strtotime($response['server_modified']) : null;
+
+        if ($response['.tag'] === 'folder') {
+            $normalizedPath = $this->prefixer->stripDirectoryPrefix($response['path_display']);
+
+            return new DirectoryAttributes(
+                $normalizedPath,
+                null,
+                $timestamp
+            );
+        }
+
+        $normalizedPath = $this->prefixer->stripPrefix($response['path_display']);
+
+        return new FileAttributes(
+            $normalizedPath,
+            $response['size'] ?? null,
+            null,
+            $timestamp,
+            $this->mimeTypeDetector->detectMimeTypeFromPath($normalizedPath)
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function move(string $source, string $destination, Config $config): void
+    {
+        $path = $this->applyPathPrefix($source);
+        $newPath = $this->applyPathPrefix($destination);
 
         try {
-            $object = $this->client->getMetadata($path);
+            $this->client->move($path, $newPath);
         } catch (BadRequest $e) {
-            return false;
+            throw UnableToMoveFile::fromLocationTo($path, $newPath, $e);
         }
-
-        return $this->normalizeResponse($object);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getSize($path)
+    public function copy(string $source, string $destination, Config $config): void
     {
-        return $this->getMetadata($path);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getMimetype($path)
-    {
-        return ['mimetype' => MimeType::detectByFilename($path)];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getTimestamp($path)
-    {
-        return $this->getMetadata($path);
-    }
-
-    public function getTemporaryLink(string $path): string
-    {
-        return $this->client->getTemporaryLink($path);
-    }
-
-    public function getTemporaryUrl(string $path): string
-    {
-        return $this->getTemporaryLink($path);
-    }
-
-    public function getUrl(string $path): string
-    {
-        return $this->getTemporaryLink($path);
-    }
-
-    public function getThumbnail(string $path, string $format = 'jpeg', string $size = 'w64h64')
-    {
-        return $this->client->getThumbnail($path, $format, $size);
-    }
-
-    public function createSharedLinkWithSettings($path, $settings)
-    {
-        return $this->client->createSharedLinkWithSettings($path, $settings);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function applyPathPrefix($path): string
-    {
-        $path = parent::applyPathPrefix($path);
-
-        return '/'.trim($path, '/');
-    }
-
-    public function getClient(): Client
-    {
-        return $this->client;
-    }
-
-    /**
-     * @param string $path
-     * @param resource|string $contents
-     * @param string $mode
-     *
-     * @return array|false file metadata
-     */
-    protected function upload(string $path, $contents, string $mode)
-    {
-        $path = $this->applyPathPrefix($path);
+        $path = $this->applyPathPrefix($source);
+        $newPath = $this->applyPathPrefix($destination);
 
         try {
-            $object = $this->client->upload($path, $contents, $mode);
+            $this->client->copy($path, $newPath);
         } catch (BadRequest $e) {
-            return false;
+            throw UnableToCopyFile::fromLocationTo($path, $newPath, $e);
         }
-
-        return $this->normalizeResponse($object);
     }
 
-    protected function normalizeResponse(array $response): array
+    protected function applyPathPrefix($path): string
     {
-        $normalizedPath = ltrim($this->removePathPrefix($response['path_display']), '/');
-
-        $normalizedResponse = ['path' => $normalizedPath];
-
-        if (isset($response['server_modified'])) {
-            $normalizedResponse['timestamp'] = strtotime($response['server_modified']);
-        }
-
-        if (isset($response['size'])) {
-            $normalizedResponse['size'] = $response['size'];
-            $normalizedResponse['bytes'] = $response['size'];
-        }
-
-        $type = ($response['.tag'] === 'folder' ? 'dir' : 'file');
-        $normalizedResponse['type'] = $type;
-
-        return $normalizedResponse;
+        return '/'.trim($this->prefixer->prefixPath($path), '/');
     }
 }

@@ -3,33 +3,39 @@
 namespace Spatie\FlysystemDropbox\Test;
 
 use GuzzleHttp\Psr7\Response;
+use League\Flysystem;
 use League\Flysystem\Config;
+use League\Flysystem\StorageAttributes;
+use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToMoveFile;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Spatie\Dropbox\Client;
 use Spatie\Dropbox\Exceptions\BadRequest;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 
 class DropboxAdapterTest extends TestCase
 {
+    use ProphecyTrait;
+
     /** @var \Spatie\Dropbox\Client|\Prophecy\Prophecy\ObjectProphecy */
     protected $client;
 
     /** @var \Spatie\FlysystemDropbox\DropboxAdapter */
     protected $dropboxAdapter;
 
-    /**
-     * @before
-     */
-    public function setUpTest()
+    public function setUp(): void
     {
+        parent::setUp();
+
         $this->client = $this->prophesize(Client::class);
 
         $this->dropboxAdapter = new DropboxAdapter($this->client->reveal(), 'prefix');
     }
 
     /** @test */
-    public function it_can_write()
+    public function if_can_write()
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
@@ -37,15 +43,12 @@ class DropboxAdapterTest extends TestCase
             '.tag' => 'file',
         ]);
 
-        $result = $this->dropboxAdapter->write('something', 'contents', new Config());
-
-        $this->assertIsArrayType($result);
-        $this->assertArrayHasKey('type', $result);
-        $this->assertEquals('file', $result['type']);
+        $this->dropboxAdapter->write('something', 'contents', new Config());
+        $this->addToAssertionCount(1);
     }
 
     /** @test */
-    public function it_can_update()
+    public function if_can_write_to_a_stream()
     {
         $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
             'server_modified' => '2015-05-12T15:50:38Z',
@@ -53,43 +56,8 @@ class DropboxAdapterTest extends TestCase
             '.tag' => 'file',
         ]);
 
-        $result = $this->dropboxAdapter->update('something', 'contents', new Config());
-
-        $this->assertIsArrayType($result);
-        $this->assertArrayHasKey('type', $result);
-        $this->assertEquals('file', $result['type']);
-    }
-
-    /** @test */
-    public function it_can_write_a_stream()
-    {
-        $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
-            'server_modified' => '2015-05-12T15:50:38Z',
-            'path_display' => '/prefix/something',
-            '.tag' => 'file',
-        ]);
-
-        $result = $this->dropboxAdapter->writeStream('something', tmpfile(), new Config());
-
-        $this->assertIsArrayType($result);
-        $this->assertArrayHasKey('type', $result);
-        $this->assertEquals('file', $result['type']);
-    }
-
-    /** @test */
-    public function it_can_upload_using_a_stream()
-    {
-        $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
-            'server_modified' => '2015-05-12T15:50:38Z',
-            'path_display' => '/prefix/something',
-            '.tag' => 'file',
-        ]);
-
-        $result = $this->dropboxAdapter->updateStream('something', tmpfile(), new Config());
-
-        $this->assertIsArrayType($result);
-        $this->assertArrayHasKey('type', $result);
-        $this->assertEquals('file', $result['type']);
+        $this->dropboxAdapter->writeStream('something', tmpfile(), new Config());
+        $this->addToAssertionCount(1);
     }
 
     /**
@@ -97,73 +65,72 @@ class DropboxAdapterTest extends TestCase
      *
      * @dataProvider  metadataProvider
      */
-    public function it_has_calls_to_get_meta_data($method)
+    public function it_can_work_with_meta_date($method)
     {
         $this->client = $this->prophesize(Client::class);
         $this->client->getMetadata('/one')->willReturn([
-            '.tag'   => 'file',
+            '.tag' => 'file',
             'server_modified' => '2015-05-12T15:50:38Z',
             'path_display' => '/one',
         ]);
 
         $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
 
-        $this->assertIsArrayType($this->dropboxAdapter->{$method}('one'));
+        $this->assertInstanceOf(
+            StorageAttributes::class,
+            $this->dropboxAdapter->{$method}('one')
+        );
     }
 
     public function metadataProvider(): array
     {
         return [
-            ['getMetadata'],
-            ['getTimestamp'],
-            ['getSize'],
-            ['has'],
+            ['visibility'],
+            ['mimeType'],
+            ['lastModified'],
+            ['fileSize'],
         ];
-    }
-
-    /** @test */
-    public function it_will_not_hold_metadata_after_failing()
-    {
-        $this->client = $this->prophesize(Client::class);
-
-        $this->client->getMetadata('/one')->willThrow(new BadRequest(new Response(409)));
-
-        $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
-
-        $this->assertFalse($this->dropboxAdapter->has('one'));
     }
 
     /** @test */
     public function it_can_read()
     {
         $stream = tmpfile();
-        fwrite($stream, 'something');
+        fwrite($stream, 'returndata');
+        rewind($stream);
 
         $this->client->download(Argument::any(), Argument::any())->willReturn($stream);
 
-        $this->assertIsArrayType($this->dropboxAdapter->read('something'));
+        $this->assertStringContainsString(
+            'returndata',
+            $this->dropboxAdapter->read('something')
+        );
     }
 
     /** @test */
-    public function it_can_read_using_a_stream()
+    public function it_can_read_a_stream()
     {
         $stream = tmpfile();
-        fwrite($stream, 'something');
+        fwrite($stream, 'returndata');
+        rewind($stream);
 
         $this->client->download(Argument::any(), Argument::any())->willReturn($stream);
 
-        $this->assertIsArrayType($this->dropboxAdapter->readStream('something'));
+        $this->assertIsResource($this->dropboxAdapter->readStream('something'));
 
         fclose($stream);
     }
 
     /** @test */
-    public function it_can_delete_stuff()
+    public function it_can_delete()
     {
         $this->client->delete('/prefix/something')->willReturn(['.tag' => 'file']);
 
-        $this->assertTrue($this->dropboxAdapter->delete('something'));
-        $this->assertTrue($this->dropboxAdapter->deleteDir('something'));
+        $this->dropboxAdapter->delete('something');
+        $this->addToAssertionCount(1);
+
+        $this->dropboxAdapter->deleteDirectory('something');
+        $this->addToAssertionCount(1);
     }
 
     /** @test */
@@ -172,35 +139,18 @@ class DropboxAdapterTest extends TestCase
         $this->client->createFolder('/prefix/fail/please')->willThrow(new BadRequest(new Response(409)));
         $this->client->createFolder('/prefix/pass/please')->willReturn([
             '.tag' => 'folder',
-            'path_display'   => '/prefix/pass/please',
+            'path_display' => '/prefix/pass/please',
         ]);
 
-        $this->assertFalse($this->dropboxAdapter->createDir('fail/please', new Config()));
+        $this->expectException(UnableToCreateDirectory::class);
+        $this->dropboxAdapter->createDirectory('fail/please', new Config());
 
-        $expected = ['path' => 'pass/please', 'type' => 'dir'];
-        $this->assertEquals($expected, $this->dropboxAdapter->createDir('pass/please', new Config()));
+        $this->dropboxAdapter->createDirectory('pass/please', new Config());
+        $this->addToAssertionCount(1);
     }
 
     /** @test */
-    public function it_can_list_a_single_page_of_contents()
-    {
-        $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
-            [
-                'entries' => [
-                    ['.tag' => 'folder', 'path_display' => 'dirname'],
-                    ['.tag' => 'file', 'path_display' => 'dirname/file'],
-                ],
-                'has_more' => false,
-            ]
-        );
-
-        $result = $this->dropboxAdapter->listContents('', true);
-
-        $this->assertCount(2, $result);
-    }
-
-    /** @test */
-    public function it_can_list_multiple_pages_of_contents()
+    public function it_can_list_contents_of_a_directory()
     {
         $cursor = 'cursor';
 
@@ -226,54 +176,52 @@ class DropboxAdapterTest extends TestCase
         );
 
         $result = $this->dropboxAdapter->listContents('', true);
-
         $this->assertCount(4, $result);
     }
 
     /** @test */
-    public function it_can_rename_stuff()
+    public function it_can_move_a_file()
     {
         $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
 
-        $this->assertTrue($this->dropboxAdapter->rename('something', 'something'));
+        $this->dropboxAdapter->move('something', 'something', new Config());
+        $this->addToAssertionCount(1);
     }
 
     /** @test */
-    public function it_will_return_false_when_a_rename_has_failed()
+    public function it_can_handle_a_failing_move()
     {
         $this->client->move('/prefix/something', '/prefix/something')->willThrow(new BadRequest(new Response(409)));
 
-        $this->assertFalse($this->dropboxAdapter->rename('something', 'something'));
+        $this->expectException(UnableToMoveFile::class);
+        $this->dropboxAdapter->move('something', 'something', new Config());
     }
 
     /** @test */
-    public function it_can_copy_a_file()
+    public function it_can_copy()
     {
-        $this->client->copy(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
+        $this->client->copy(
+            Argument::type('string'),
+            Argument::type('string')
+        )->willReturn(['.tag' => 'file', 'path' => 'something']);
 
-        $this->assertTrue($this->dropboxAdapter->copy('something', 'something'));
+        $this->dropboxAdapter->copy('something', 'something', new Config());
+        $this->addToAssertionCount(1);
     }
 
-    /** @test */
-    public function it_will_return_false_when_the_copy_process_has_failed()
+    public function it_can_handle_a_failing_copy()
     {
         $this->client->copy(Argument::any(), Argument::any())->willThrow(new BadRequest(new Response(409)));
 
-        $this->assertFalse($this->dropboxAdapter->copy('something', 'something'));
+        $this->expectException(Flysystem\UnableToCopyFile::class);
+        $this->dropboxAdapter->copy('something', 'something', new Config());
     }
 
-    /** @test */
-    public function it_can_get_a_client()
+    public function testGetClient()
     {
-        $this->assertInstanceOf(Client::class, $this->dropboxAdapter->getClient());
-    }
-
-    private function assertIsArrayType($input)
-    {
-        if (method_exists(TestCase::class, 'assertIsArray')) {
-            $this->assertIsArray($input);
-        } else {
-            $this->assertInternalType('array', $input);
-        }
+        $this->assertInstanceOf(
+            Client::class,
+            $this->dropboxAdapter->getClient()
+        );
     }
 }
