@@ -69,7 +69,7 @@ class DropboxAdapterTest extends TestCase
     {
         $this->client = $this->prophesize(Client::class);
         $this->client->getMetadata('/one')->willReturn([
-            '.tag'   => 'file',
+            '.tag' => 'file',
             'server_modified' => '2015-05-12T15:50:38Z',
             'path_display' => '/one',
         ]);
@@ -139,7 +139,7 @@ class DropboxAdapterTest extends TestCase
         $this->client->createFolder('/prefix/fail/please')->willThrow(new BadRequest(new Response(409)));
         $this->client->createFolder('/prefix/pass/please')->willReturn([
             '.tag' => 'folder',
-            'path_display'   => '/prefix/pass/please',
+            'path_display' => '/prefix/pass/please',
         ]);
 
         $this->expectException(UnableToCreateDirectory::class);
