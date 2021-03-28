@@ -85,13 +85,13 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
             throw Flysystem\UnableToReadFile::fromLocation($path);
         }
 
-        $contents = stream_get_contents($object['stream']);
-        fclose($object['stream']);
-        unset($object['stream']);
-
-        if ($contents === false) {
+        if (!is_resource($object)) {
             throw Flysystem\UnableToReadFile::fromLocation($path);
         }
+
+        $contents = stream_get_contents($object);
+        fclose($object);
+        unset($object);
 
         return $contents;
     }
