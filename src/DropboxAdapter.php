@@ -140,7 +140,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         $location = $this->applyPathPrefix($path);
 
         try {
-            $this->delete($location);
+            $this->client->delete($location);
         } catch (UnableToDeleteFile $e) {
             throw Flysystem\UnableToDeleteDirectory::atLocation($location, $e->getPrevious()->getMessage(), $e);
         }
