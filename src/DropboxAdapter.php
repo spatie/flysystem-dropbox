@@ -238,7 +238,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
      */
     public function listContents(string $path = '', bool $deep = false): iterable
     {
-        foreach($this->iterateFolderContents($path, $deep) as $entry) {
+        foreach ($this->iterateFolderContents($path, $deep) as $entry) {
             yield $this->normalizeResponse($entry);
         }
     }
@@ -251,7 +251,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
 
         yield from $result['entries'];
 
-        while($result['has_more']) {
+        while ($result['has_more']) {
             $result = $this->client->listFolderContinue($result['cursor']);
             yield from $result['entries'];
         }
