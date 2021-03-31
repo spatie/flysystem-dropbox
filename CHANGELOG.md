@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 2.0.1 - 2021-03-31
+
+- fix bugs discovered after real-world use (#63)
+
 ## 2.0.0 - 2021-03-28
 
 - add support from Flysystem v2
