@@ -236,29 +236,25 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * {@inheritDoc}
      */
-    public function listContents(string $path = '', bool $deep = false): array
+    public function listContents(string $path = '', bool $deep = false): iterable
+    {
+        foreach($this->iterateFolderContents($path, $deep) as $entry) {
+            yield $this->normalizeResponse($entry);
+        }
+    }
+
+    protected function iterateFolderContents(string $path = '', bool $deep = false): \Generator
     {
         $location = $this->applyPathPrefix($path);
 
-        try {
-            $result = $this->client->listFolder($location, $path);
-        } catch (BadRequest $e) {
-            return [];
-        }
+        $result = $this->client->listFolder($location, $deep);
 
-        $entries = $result['entries'];
-        while ($result['has_more']) {
+        yield from $result['entries'];
+
+        while($result['has_more']) {
             $result = $this->client->listFolderContinue($result['cursor']);
-            $entries = array_merge($entries, $result['entries']);
+            yield from $result['entries'];
         }
-
-        if (! count($entries)) {
-            return [];
-        }
-
-        return array_map(function ($entry) {
-            return $this->normalizeResponse($entry);
-        }, $entries);
     }
 
     protected function normalizeResponse(array $response): StorageAttributes
