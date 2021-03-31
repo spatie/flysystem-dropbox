@@ -68,7 +68,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         $location = $this->applyPathPrefix($path);
 
         try {
-            $this->client->upload($path, $contents, 'overwrite');
+            $this->client->upload($location, $contents, 'overwrite');
         } catch (BadRequest $e) {
             throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
         }
@@ -82,7 +82,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         $location = $this->applyPathPrefix($path);
 
         try {
-            $this->client->upload($path, $contents, 'overwrite');
+            $this->client->upload($location, $contents, 'overwrite');
         } catch (BadRequest $e) {
             throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
         }
@@ -93,13 +93,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
      */
     public function read(string $path): string
     {
-        if (! $object = $this->readStream($path)) {
-            throw UnableToReadFile::fromLocation($path);
-        }
-
-        if (! is_resource($object)) {
-            throw UnableToReadFile::fromLocation($path);
-        }
+        $object = $this->readStream($path);
 
         $contents = stream_get_contents($object);
         fclose($object);
@@ -113,12 +107,12 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
      */
     public function readStream(string $path)
     {
-        $path = $this->applyPathPrefix($path);
+        $location = $this->applyPathPrefix($path);
 
         try {
-            $stream = $this->client->download($path);
+            $stream = $this->client->download($location);
         } catch (BadRequest $e) {
-            return false;
+            throw UnableToReadFile::fromLocation($location, $e->getMessage(), $e);
         }
 
         return $stream;
@@ -134,7 +128,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         try {
             $this->client->delete($location);
         } catch (BadRequest $e) {
-            throw UnableToDeleteFile::atLocation($path, $e->getMessage(), $e);
+            throw UnableToDeleteFile::atLocation($location, $e->getMessage(), $e);
         }
     }
 
@@ -143,10 +137,12 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
      */
     public function deleteDirectory(string $path): void
     {
+        $location = $this->applyPathPrefix($path);
+
         try {
-            $this->delete($path);
+            $this->client->delete($location);
         } catch (UnableToDeleteFile $e) {
-            throw Flysystem\UnableToDeleteDirectory::atLocation($path, $e->getPrevious()->getMessage(), $e);
+            throw Flysystem\UnableToDeleteDirectory::atLocation($location, $e->getPrevious()->getMessage(), $e);
         }
     }
 
@@ -155,12 +151,12 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
      */
     public function createDirectory(string $path, Config $config): void
     {
-        $path = $this->applyPathPrefix($path);
+        $location = $this->applyPathPrefix($path);
 
         try {
-            $this->client->createFolder($path);
+            $this->client->createFolder($location);
         } catch (BadRequest $e) {
-            throw UnableToCreateDirectory::atLocation($path, $e->getMessage());
+            throw UnableToCreateDirectory::atLocation($location, $e->getMessage());
         }
     }
 
@@ -270,7 +266,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         $timestamp = (isset($response['server_modified'])) ? strtotime($response['server_modified']) : null;
 
         if ($response['.tag'] === 'folder') {
-            $normalizedPath = $this->prefixer->stripDirectoryPrefix($response['path_display']);
+            $normalizedPath = ltrim($this->prefixer->stripDirectoryPrefix($response['path_display']), '/');
 
             return new DirectoryAttributes(
                 $normalizedPath,
@@ -279,7 +275,7 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
             );
         }
 
-        $normalizedPath = $this->prefixer->stripPrefix($response['path_display']);
+        $normalizedPath = ltrim($this->prefixer->stripPrefix($response['path_display']), '/');
 
         return new FileAttributes(
             $normalizedPath,
