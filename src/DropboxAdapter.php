@@ -246,9 +246,13 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     protected function iterateFolderContents(string $path = '', bool $deep = false): \Generator
     {
         $location = $this->applyPathPrefix($path);
-
-        $result = $this->client->listFolder($location, $deep);
-
+        
+        try {
+            $result = $this->client->listFolder($location, $deep);
+        } catch (BadRequest $e) {
+            return;
+        }
+        
         yield from $result['entries'];
 
         while ($result['has_more']) {
