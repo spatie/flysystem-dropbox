@@ -157,8 +157,9 @@ class DropboxAdapterTest extends TestCase
         $this->client->listFolder(Argument::type('string'), Argument::any())->willReturn(
             [
                 'entries' => [
-                    ['.tag' => 'folder', 'path_display' => 'dirname'],
-                    ['.tag' => 'file', 'path_display' => 'dirname/file'],
+                    // This is the prefixed folder itself and shouldn't be shown.
+                    ['.tag' => 'folder', 'path_display' => '/prefix'],
+                    ['.tag' => 'file', 'path_display' => '/prefix/file'],
                 ],
                 'has_more' => true,
                 'cursor' => $cursor,
@@ -168,15 +169,15 @@ class DropboxAdapterTest extends TestCase
         $this->client->listFolderContinue(Argument::exact($cursor))->willReturn(
             [
                 'entries' => [
-                    ['.tag' => 'folder', 'path_display' => 'dirname2'],
-                    ['.tag' => 'file', 'path_display' => 'dirname2/file2'],
+                    ['.tag' => 'folder', 'path_display' => '/prefix/dirname2'],
+                    ['.tag' => 'file', 'path_display' => '/prefix/dirname2/file2'],
                 ],
                 'has_more' => false,
             ]
         );
 
         $result = $this->dropboxAdapter->listContents('', true);
-        $this->assertCount(4, $result);
+        $this->assertCount(3, $result);
     }
 
     /** @test */
