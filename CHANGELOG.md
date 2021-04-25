@@ -2,9 +2,13 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 2.0.3 - 2021-04-25
+
+- make listing a non-created directory not throw an exception (#72)
+
 ## 2.0.2 - 2021-03-31
 
-- use generator in listContents call for upstream compliance. (#66)
+- use generator in listContents call for upstream compliance (#66)
 
 ## 2.0.1 - 2021-03-31
 
