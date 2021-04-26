@@ -239,7 +239,14 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     public function listContents(string $path = '', bool $deep = false): iterable
     {
         foreach ($this->iterateFolderContents($path, $deep) as $entry) {
-            yield $this->normalizeResponse($entry);
+            $storageAttrs = $this->normalizeResponse($entry);
+
+            // Avoid including the base directory itself
+            if ($storageAttrs->isDir() && $storageAttrs->path() === $path) {
+                continue;
+            }
+
+            yield $storageAttrs;
         }
     }
 
