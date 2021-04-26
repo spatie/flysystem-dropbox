@@ -2,6 +2,10 @@
 
 All notable changes to `flysystem-dropbox` will be documented in this file
 
+## 2.0.4 - 2021-04-26
+
+- avoid listing the base directory itself in listContents calls (#73)
+
 ## 2.0.3 - 2021-04-25
 
 - make listing a non-created directory not throw an exception (#72)
