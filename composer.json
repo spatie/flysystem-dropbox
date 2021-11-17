@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "php": ">7.2 || ^8.0",
+        "php": "^8.0",
         "league/flysystem": "^2.0.4",
         "spatie/dropbox-api": "^1.17.1"
     },
