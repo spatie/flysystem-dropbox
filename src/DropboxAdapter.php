@@ -6,8 +6,10 @@ use League\Flysystem;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
+use League\Flysystem\FilesystemException;
 use League\Flysystem\PathPrefixer;
 use League\Flysystem\StorageAttributes;
+use League\Flysystem\UnableToCheckExistence;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToDeleteFile;
@@ -58,6 +60,11 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
         } catch (BadRequest $exception) {
             return false;
         }
+    }
+
+    public function directoryExists(string $path): bool
+    {
+        return $this->fileExists($path);
     }
 
     /**
@@ -253,13 +260,13 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     protected function iterateFolderContents(string $path = '', bool $deep = false): \Generator
     {
         $location = $this->applyPathPrefix($path);
-        
+
         try {
             $result = $this->client->listFolder($location, $deep);
         } catch (BadRequest $e) {
             return;
         }
-        
+
         yield from $result['entries'];
 
         while ($result['has_more']) {
