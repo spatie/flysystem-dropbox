@@ -1,4 +1,4 @@
-# Flysystem v2 adapter for the Dropbox API
+# Flysystem adapter for the Dropbox API
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/flysystem-dropbox.svg?style=flat-square)](https://packagist.org/packages/spatie/flysystem-dropbox)
 [![Tests](https://github.com/spatie/flysystem-dropbox/actions/workflows/run-tests.yml/badge.svg)](https://github.com/spatie/flysystem-dropbox/actions/workflows/run-tests.yml)
