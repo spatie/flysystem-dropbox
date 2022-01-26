@@ -4,7 +4,7 @@
 [![Tests](https://github.com/spatie/flysystem-dropbox/actions/workflows/run-tests.yml/badge.svg)](https://github.com/spatie/flysystem-dropbox/actions/workflows/run-tests.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/spatie/flysystem-dropbox.svg?style=flat-square)](https://packagist.org/packages/spatie/flysystem-dropbox)
 
-This package contains a [Flysystem v2](https://flysystem.thephpleague.com/) adapter for Dropbox. Under the hood, the [Dropbox API v2](https://www.dropbox.com/developers/documentation/http/overview) is used.
+This package contains a [Flysystem](https://flysystem.thephpleague.com/) adapter for Dropbox. Under the hood, the [Dropbox API v2](https://www.dropbox.com/developers/documentation/http/overview) is used.
 
 ## Using Flystem v1
 
