@@ -334,4 +334,10 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     {
         return '/'.trim($this->prefixer->prefixPath($path), '/');
     }
+    
+    
+    public function getUrl(string $path): string
+    {
+        return $this->client->getTemporaryLink($path);
+    }
 }
