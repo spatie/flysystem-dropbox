@@ -15,36 +15,34 @@ use Spatie\Dropbox\Client;
 use Spatie\Dropbox\Exceptions\BadRequest;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 
+uses(
+    PHPUnit\Framework\TestCase::class,
+    ProphecyTrait::class
+);
+
+beforeEach(function () {
+    $this->client = $this->prophesize(Client::class);
+
+    $this->dropboxAdapter = new DropboxAdapter($this->client->reveal(), 'prefix');
+});
+
+it('can write', function () {
+    $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
+        'server_modified' => '2015-05-12T15:50:38Z',
+        'path_display' => '/prefix/something',
+        '.tag' => 'file',
+    ]);
+
+    $this->dropboxAdapter->write('something', 'contents', new Config());
+    $this->addToAssertionCount(1);
+});
+
 class DropboxAdapterTest extends TestCase
 {
     use ProphecyTrait;
-
-    /** @var \Spatie\Dropbox\Client|\Prophecy\Prophecy\ObjectProphecy */
-    protected $client;
-
-    /** @var \Spatie\FlysystemDropbox\DropboxAdapter */
-    protected $dropboxAdapter;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->client = $this->prophesize(Client::class);
-
-        $this->dropboxAdapter = new DropboxAdapter($this->client->reveal(), 'prefix');
-    }
-
     /** @test */
     public function if_can_write()
     {
-        $this->client->upload(Argument::any(), Argument::any(), Argument::any())->willReturn([
-            'server_modified' => '2015-05-12T15:50:38Z',
-            'path_display' => '/prefix/something',
-            '.tag' => 'file',
-        ]);
-
-        $this->dropboxAdapter->write('something', 'contents', new Config());
-        $this->addToAssertionCount(1);
     }
 
     /** @test */
