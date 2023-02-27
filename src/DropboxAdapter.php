@@ -3,6 +3,8 @@
 namespace Spatie\FlysystemDropbox;
 
 use League\Flysystem;
+use League\Flysystem\ChecksumAlgoIsNotSupported;
+use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
@@ -14,6 +16,7 @@ use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToDeleteFile;
 use League\Flysystem\UnableToMoveFile;
+use League\Flysystem\UnableToProvideChecksum;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToSetVisibility;
@@ -23,7 +26,7 @@ use League\MimeTypeDetection\MimeTypeDetector;
 use Spatie\Dropbox\Client;
 use Spatie\Dropbox\Exceptions\BadRequest;
 
-class DropboxAdapter implements Flysystem\FilesystemAdapter
+class DropboxAdapter implements FilesystemAdapter, Flysystem\ChecksumProvider
 {
     /** @var \Spatie\Dropbox\Client */
     protected $client;
@@ -224,6 +227,36 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     /**
      * @inheritDoc
      */
+    public function checksum(string $path, Config $config): string
+    {
+        $algo = $config->get('checksum_algo', 'sha256');
+        $location = $this->applyPathPrefix($path);
+
+        try {
+            $response = $this->client->getMetadata($location);
+        } catch (BadRequest $e) {
+            throw new UnableToProvideChecksum(
+                reason: 'Unable to retrieve metadata.',
+                path: $path,
+                previous: $e,
+            );
+        }
+
+        if (empty($response['content_hash'])) {
+            throw new UnableToProvideChecksum(
+                reason: 'Content-Hash not provided by Dropbox metadata.',
+                path: $path,
+            );
+        }
+
+        return $algo === 'sha256'
+            ? $response['content_hash']
+            : hash($algo, $response['content_hash']);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function fileSize(string $path): FileAttributes
     {
         $location = $this->applyPathPrefix($path);
@@ -334,8 +367,8 @@ class DropboxAdapter implements Flysystem\FilesystemAdapter
     {
         return '/'.trim($this->prefixer->prefixPath($path), '/');
     }
-    
-    
+
+
     public function getUrl(string $path): string
     {
         return $this->client->getTemporaryLink($path);

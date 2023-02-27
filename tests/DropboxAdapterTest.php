@@ -66,6 +66,28 @@ it('can work with meta date', function (string $method) {
     'fileSize',
 ]);
 
+it('can provide checksum', function (?string $algo, string $expected) {
+    $this->client = $this->prophesize(Client::class);
+    $this->client->getMetadata('/one')->willReturn([
+        '.tag' => 'file',
+        'path_display' => '/one',
+        'content_hash' => 'f09112da3439cff97fd750b73b1566bb62a85c1b8688985b1727b79530352af9',
+    ]);
+
+    $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
+
+    $this->assertSame(
+        $expected,
+        $this->dropboxAdapter->checksum('one', new Config([
+            'checksum_algo' => $algo,
+        ]))
+    );
+})->with([
+    [null, 'f09112da3439cff97fd750b73b1566bb62a85c1b8688985b1727b79530352af9'],
+    ['sha256', 'f09112da3439cff97fd750b73b1566bb62a85c1b8688985b1727b79530352af9'],
+    ['md5', 'e144e4defa1a6018ef003f96dad28a5b'],
+]);
+
 it('can read', function () {
     $stream = tmpfile();
     fwrite($stream, 'returndata');
