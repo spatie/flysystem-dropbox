@@ -3,6 +3,7 @@
 namespace Spatie\FlysystemDropbox;
 
 use League\Flysystem;
+use League\Flysystem\ChecksumProvider;
 use League\Flysystem\ChecksumAlgoIsNotSupported;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Config;
@@ -26,7 +27,7 @@ use League\MimeTypeDetection\MimeTypeDetector;
 use Spatie\Dropbox\Client;
 use Spatie\Dropbox\Exceptions\BadRequest;
 
-class DropboxAdapter implements FilesystemAdapter, Flysystem\ChecksumProvider
+class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 {
     /** @var \Spatie\Dropbox\Client */
     protected $client;
