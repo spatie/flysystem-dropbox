@@ -2,6 +2,7 @@
 
 namespace Spatie\FlysystemDropbox;
 
+use Generator;
 use League\Flysystem;
 use League\Flysystem\ChecksumProvider;
 use League\Flysystem\ChecksumAlgoIsNotSupported;
@@ -15,6 +16,7 @@ use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToCheckExistence;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToDeleteDirectory;
 use League\Flysystem\UnableToDeleteFile;
 use League\Flysystem\UnableToMoveFile;
 use League\Flysystem\UnableToProvideChecksum;
@@ -29,14 +31,11 @@ use Spatie\Dropbox\Exceptions\BadRequest;
 
 class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 {
-    /** @var \Spatie\Dropbox\Client */
-    protected $client;
+    protected Client $client;
 
-    /** @var \League\Flysystem\PathPrefixer */
-    protected $prefixer;
+    protected PathPrefixer $prefixer;
 
-    /** @var \League\MimeTypeDetection\MimeTypeDetector */
-    protected $mimeTypeDetector;
+    protected MimeTypeDetector $mimeTypeDetector;
 
     public function __construct(
         Client $client,
@@ -61,7 +60,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
             $this->client->getMetadata($location);
 
             return true;
-        } catch (BadRequest $exception) {
+        } catch (BadRequest) {
             return false;
         }
     }
@@ -80,8 +79,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $this->client->upload($location, $contents, 'overwrite');
-        } catch (BadRequest $e) {
-            throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
+        } catch (BadRequest $exception) {
+            throw UnableToWriteFile::atLocation($location, $exception->getMessage(), $exception);
         }
     }
 
@@ -94,8 +93,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $this->client->upload($location, $contents, 'overwrite');
-        } catch (BadRequest $e) {
-            throw UnableToWriteFile::atLocation($location, $e->getMessage(), $e);
+        } catch (BadRequest $exception) {
+            throw UnableToWriteFile::atLocation($location, $exception->getMessage(), $exception);
         }
     }
 
@@ -108,6 +107,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         $contents = stream_get_contents($object);
         fclose($object);
+
         unset($object);
 
         return $contents;
@@ -122,8 +122,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $stream = $this->client->download($location);
-        } catch (BadRequest $e) {
-            throw UnableToReadFile::fromLocation($location, $e->getMessage(), $e);
+        } catch (BadRequest $exception) {
+            throw UnableToReadFile::fromLocation($location, $exception->getMessage(), $exception);
         }
 
         return $stream;
@@ -138,8 +138,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $this->client->delete($location);
-        } catch (BadRequest $e) {
-            throw UnableToDeleteFile::atLocation($location, $e->getMessage(), $e);
+        } catch (BadRequest $exception) {
+            throw UnableToDeleteFile::atLocation($location, $exception->getMessage(), $exception);
         }
     }
 
@@ -152,8 +152,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $this->client->delete($location);
-        } catch (UnableToDeleteFile $e) {
-            throw Flysystem\UnableToDeleteDirectory::atLocation($location, $e->getPrevious()->getMessage(), $e);
+        } catch (UnableToDeleteFile $exception) {
+            throw UnableToDeleteDirectory::atLocation($location, $exception->getPrevious()->getMessage(), $exception);
         }
     }
 
@@ -166,8 +166,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $this->client->createFolder($location);
-        } catch (BadRequest $e) {
-            throw UnableToCreateDirectory::atLocation($location, $e->getMessage());
+        } catch (BadRequest $exception) {
+            throw UnableToCreateDirectory::atLocation($location, $exception->getMessage());
         }
     }
 
@@ -211,8 +211,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $response = $this->client->getMetadata($location);
-        } catch (BadRequest $e) {
-            throw UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
+        } catch (BadRequest $exception) {
+            throw UnableToRetrieveMetadata::lastModified($location, $exception->getMessage());
         }
 
         $timestamp = (isset($response['server_modified'])) ? strtotime($response['server_modified']) : null;
@@ -235,11 +235,11 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $response = $this->client->getMetadata($location);
-        } catch (BadRequest $e) {
+        } catch (BadRequest $exception) {
             throw new UnableToProvideChecksum(
                 reason: 'Unable to retrieve metadata.',
                 path: $path,
-                previous: $e,
+                previous: $exception,
             );
         }
 
@@ -264,8 +264,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $response = $this->client->getMetadata($location);
-        } catch (BadRequest $e) {
-            throw UnableToRetrieveMetadata::lastModified($location, $e->getMessage());
+        } catch (BadRequest $exception) {
+            throw UnableToRetrieveMetadata::lastModified($location, $exception->getMessage());
         }
 
         return new FileAttributes(
@@ -291,13 +291,13 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
         }
     }
 
-    protected function iterateFolderContents(string $path = '', bool $deep = false): \Generator
+    protected function iterateFolderContents(string $path = '', bool $deep = false): Generator
     {
         $location = $this->applyPathPrefix($path);
 
         try {
             $result = $this->client->listFolder($location, $deep);
-        } catch (BadRequest $e) {
+        } catch (BadRequest $exception) {
             return;
         }
 
@@ -344,8 +344,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
         try {
             $this->client->move($path, $newPath);
-        } catch (BadRequest $e) {
-            throw UnableToMoveFile::fromLocationTo($path, $newPath, $e);
+        } catch (BadRequest $exception) {
+            throw UnableToMoveFile::fromLocationTo($path, $newPath, $exception);
         }
     }
 
