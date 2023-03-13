@@ -4,8 +4,10 @@ use GuzzleHttp\Psr7\Response;
 use League\Flysystem;
 use League\Flysystem\Config;
 use League\Flysystem\StorageAttributes;
+use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToMoveFile;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Spatie\Dropbox\Client;
@@ -13,7 +15,7 @@ use Spatie\Dropbox\Exceptions\BadRequest;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 
 uses(
-    \PHPUnit\Framework\TestCase::class,
+    TestCase::class,
     ProphecyTrait::class
 );
 
@@ -191,7 +193,7 @@ it('can handle a failing copy', function () {
     $this->client->copy(Argument::any(), Argument::any())->willThrow(new BadRequest(new Response(409)));
 
     $this->dropboxAdapter->copy('something', 'something', new Config());
-})->throws(Flysystem\UnableToCopyFile::class);
+})->throws(UnableToCopyFile::class);
 
 test('getClient')
     ->expect(fn () => $this->dropboxAdapter->getClient())
