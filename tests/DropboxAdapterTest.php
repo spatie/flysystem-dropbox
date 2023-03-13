@@ -161,7 +161,7 @@ it('can list contents to a directory', function () {
     );
 
     $result = $this->dropboxAdapter->listContents('', true);
-    expect($result)->toHaveCount(3);
+    expect(iterator_to_array($result))->toHaveCount(3);
 });
 
 it('can move a file', function () {
