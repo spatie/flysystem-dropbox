@@ -3,17 +3,13 @@
 namespace Spatie\FlysystemDropbox;
 
 use Generator;
-use League\Flysystem;
 use League\Flysystem\ChecksumProvider;
-use League\Flysystem\ChecksumAlgoIsNotSupported;
-use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
-use League\Flysystem\FilesystemException;
+use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\PathPrefixer;
 use League\Flysystem\StorageAttributes;
-use League\Flysystem\UnableToCheckExistence;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToDeleteDirectory;
@@ -71,7 +67,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function write(string $path, string $contents, Config $config): void
     {
@@ -85,7 +81,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function writeStream(string $path, $contents, Config $config): void
     {
@@ -99,7 +95,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function read(string $path): string
     {
@@ -114,7 +110,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function readStream(string $path)
     {
@@ -130,7 +126,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function delete(string $path): void
     {
@@ -144,7 +140,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function deleteDirectory(string $path): void
     {
@@ -158,7 +154,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createDirectory(string $path, Config $config): void
     {
@@ -172,7 +168,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function setVisibility(string $path, string $visibility): void
     {
@@ -180,7 +176,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function visibility(string $path): FileAttributes
     {
@@ -189,7 +185,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function mimeType(string $path): FileAttributes
     {
@@ -203,7 +199,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function lastModified(string $path): FileAttributes
     {
@@ -226,7 +222,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function checksum(string $path, Config $config): string
     {
@@ -256,7 +252,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function fileSize(string $path): FileAttributes
     {
@@ -335,7 +331,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function move(string $source, string $destination, Config $config): void
     {
@@ -350,7 +346,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function copy(string $source, string $destination, Config $config): void
     {
@@ -368,7 +364,6 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     {
         return '/'.trim($this->prefixer->prefixPath($path), '/');
     }
-
 
     public function getUrl(string $path): string
     {

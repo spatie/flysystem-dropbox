@@ -1,7 +1,6 @@
 <?php
 
 use GuzzleHttp\Psr7\Response;
-use League\Flysystem;
 use League\Flysystem\Config;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToCopyFile;
