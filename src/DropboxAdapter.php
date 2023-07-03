@@ -53,9 +53,9 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
         $location = $this->applyPathPrefix($path);
 
         try {
-            $this->client->getMetadata($location);
-
-            return true;
+           $meta = $this->client->getMetadata($location);
+ 
+            return $meta['.tag'] == 'file';
         } catch (BadRequest) {
             return false;
         }
@@ -63,7 +63,15 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
 
     public function directoryExists(string $path): bool
     {
-        return $this->fileExists($path);
+        $location = $this->applyPathPrefix($path);
+
+        try {
+            $meta = $this->client->getMetadata($location);
+
+            return $meta['.tag'] == 'folder';
+        } catch (BadRequest) {
+            return false;
+        }
     }
 
     /**
