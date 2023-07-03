@@ -53,8 +53,8 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
         $location = $this->applyPathPrefix($path);
 
         try {
-           $meta = $this->client->getMetadata($location);
- 
+            $meta = $this->client->getMetadata($location);
+
             return $meta['.tag'] == 'file';
         } catch (BadRequest) {
             return false;
