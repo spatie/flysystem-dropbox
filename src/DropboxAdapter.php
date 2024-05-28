@@ -196,12 +196,17 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
      */
     public function mimeType(string $path): FileAttributes
     {
+        $mimeType = $this->mimeTypeDetector->detectMimeTypeFromPath($path);
+        if ($mimeType === null) {
+            throw UnableToRetrieveMetadata::mimeType($path, 'Failed to determine MIME type from path');
+        }
+
         return new FileAttributes(
             $path,
             null,
             null,
             null,
-            $this->mimeTypeDetector->detectMimeTypeFromPath($path)
+            $mimeType
         );
     }
 

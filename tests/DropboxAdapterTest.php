@@ -7,6 +7,7 @@ use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToMoveFile;
 use League\Flysystem\UnableToRetrieveMetadata;
+use League\MimeTypeDetection\MimeTypeDetector;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -21,8 +22,13 @@ uses(
 
 beforeEach(function () {
     $this->client = $this->prophesize(Client::class);
+    $this->mimeTypeDetector = $this->prophesize(MimeTypeDetector::class);
 
-    $this->dropboxAdapter = new DropboxAdapter($this->client->reveal(), 'prefix');
+    $this->dropboxAdapter = new DropboxAdapter(
+        $this->client->reveal(),
+        'prefix',
+        $this->mimeTypeDetector->reveal()
+    );
 });
 
 it('can write', function () {
@@ -54,8 +60,15 @@ it('can work with meta date', function (string $method) {
         'server_modified' => '2015-05-12T15:50:38Z',
         'path_display' => '/one',
     ]);
+    $this->mimeTypeDetector = $this->prophesize(MimeTypeDetector::class);
+    $this->mimeTypeDetector->detectMimeTypeFromPath('one')->willReturn('something/not.real');
 
-    $this->dropboxAdapter = new DropboxAdapter($this->client->reveal());
+
+    $this->dropboxAdapter = new DropboxAdapter(
+        $this->client->reveal(),
+        '',
+        $this->mimeTypeDetector->reveal()
+    );
 
     $this->assertInstanceOf(
         StorageAttributes::class,
@@ -70,6 +83,24 @@ it('can work with meta date', function (string $method) {
 
 it('throws on retriving visibility', function () {
     $this->dropboxAdapter->visibility('something');
+})->throws(UnableToRetrieveMetadata::class);
+
+it('can get MIME type', function() {
+    $path = 'something';
+    $mimeType = 'something/not.real';
+    $this->mimeTypeDetector->detectMimeTypeFromPath($path)->willReturn($mimeType);
+
+    $this->assertSame(
+        $mimeType,
+        $this->dropboxAdapter->mimeType($path)->mimeType()
+    );
+});
+
+it('throws if MIME type cannot be determined', function() {
+    $path = 'something';
+    $this->mimeTypeDetector->detectMimeTypeFromPath($path)->willReturn(null);
+
+    $this->dropboxAdapter->mimeType($path);
 })->throws(UnableToRetrieveMetadata::class);
 
 it('can provide checksum', function (?string $algo, string $expected) {
