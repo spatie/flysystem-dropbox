@@ -188,8 +188,7 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
      */
     public function visibility(string $path): FileAttributes
     {
-        // Noop
-        return new FileAttributes($path);
+        throw UnableToRetrieveMetadata::visibility($path, 'Adapter does not support visibility controls.');
     }
 
     /**

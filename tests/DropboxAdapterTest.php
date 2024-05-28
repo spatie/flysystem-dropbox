@@ -6,6 +6,7 @@ use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToMoveFile;
+use League\Flysystem\UnableToRetrieveMetadata;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -61,11 +62,15 @@ it('can work with meta date', function (string $method) {
         $this->dropboxAdapter->{$method}('one')
     );
 })->with([
-    'visibility',
+    // 'visibility', // Visibility is not supported
     'mimeType',
     'lastModified',
     'fileSize',
 ]);
+
+it('throws on retriving visibility', function () {
+    $this->dropboxAdapter->visibility('something');
+})->throws(UnableToRetrieveMetadata::class);
 
 it('can provide checksum', function (?string $algo, string $expected) {
     $this->client = $this->prophesize(Client::class);
