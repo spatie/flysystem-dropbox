@@ -31,7 +31,7 @@ it('can write', function () {
         '.tag' => 'file',
     ]);
 
-    $this->dropboxAdapter->write('something', 'contents', new Config());
+    $this->dropboxAdapter->write('something', 'contents', new Config);
     $this->addToAssertionCount(1);
 });
 
@@ -42,7 +42,7 @@ it('can write to a stream', function () {
         '.tag' => 'file',
     ]);
 
-    $this->dropboxAdapter->writeStream('something', tmpfile(), new Config());
+    $this->dropboxAdapter->writeStream('something', tmpfile(), new Config);
     $this->addToAssertionCount(1);
 });
 
@@ -130,9 +130,9 @@ it('can create a directory', function () {
         'path_display' => '/prefix/pass/please',
     ]);
 
-    $this->dropboxAdapter->createDirectory('fail/please', new Config());
+    $this->dropboxAdapter->createDirectory('fail/please', new Config);
 
-    $this->dropboxAdapter->createDirectory('pass/please', new Config());
+    $this->dropboxAdapter->createDirectory('pass/please', new Config);
     $this->addToAssertionCount(1);
 })->throws(UnableToCreateDirectory::class);
 
@@ -168,14 +168,14 @@ it('can list contents to a directory', function () {
 it('can move a file', function () {
     $this->client->move(Argument::type('string'), Argument::type('string'))->willReturn(['.tag' => 'file', 'path' => 'something']);
 
-    $this->dropboxAdapter->move('something', 'something', new Config());
+    $this->dropboxAdapter->move('something', 'something', new Config);
     $this->addToAssertionCount(1);
 });
 
 it('can handle a failing move', function () {
     $this->client->move('/prefix/something', '/prefix/something')->willThrow(new BadRequest(new Response(409)));
 
-    $this->dropboxAdapter->move('something', 'something', new Config());
+    $this->dropboxAdapter->move('something', 'something', new Config);
 })->throws(UnableToMoveFile::class);
 
 it('can copy', function () {
@@ -184,14 +184,14 @@ it('can copy', function () {
         Argument::type('string')
     )->willReturn(['.tag' => 'file', 'path' => 'something']);
 
-    $this->dropboxAdapter->copy('something', 'something', new Config());
+    $this->dropboxAdapter->copy('something', 'something', new Config);
     $this->addToAssertionCount(1);
 });
 
 it('can handle a failing copy', function () {
     $this->client->copy(Argument::any(), Argument::any())->willThrow(new BadRequest(new Response(409)));
 
-    $this->dropboxAdapter->copy('something', 'something', new Config());
+    $this->dropboxAdapter->copy('something', 'something', new Config);
 })->throws(UnableToCopyFile::class);
 
 test('getClient')

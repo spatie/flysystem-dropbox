@@ -25,7 +25,7 @@ use League\MimeTypeDetection\MimeTypeDetector;
 use Spatie\Dropbox\Client;
 use Spatie\Dropbox\Exceptions\BadRequest;
 
-class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
+class DropboxAdapter implements ChecksumProvider, FilesystemAdapter
 {
     protected Client $client;
 
@@ -36,11 +36,11 @@ class DropboxAdapter implements FilesystemAdapter, ChecksumProvider
     public function __construct(
         Client $client,
         string $prefix = '',
-        MimeTypeDetector $mimeTypeDetector = null
+        ?MimeTypeDetector $mimeTypeDetector = null
     ) {
         $this->client = $client;
         $this->prefixer = new PathPrefixer($prefix);
-        $this->mimeTypeDetector = $mimeTypeDetector ?: new FinfoMimeTypeDetector();
+        $this->mimeTypeDetector = $mimeTypeDetector ?: new FinfoMimeTypeDetector;
     }
 
     public function getClient(): Client
