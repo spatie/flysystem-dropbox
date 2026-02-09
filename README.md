@@ -39,10 +39,8 @@ $client = new Client($authorizationToken);
 
 $adapter = new DropboxAdapter($client);
 
-$filesystem = new Filesystem($adapter, ['case_sensitive' => false]);
+$filesystem = new Filesystem($adapter);
 ```
-
-Note: Because Dropbox is not case-sensitive you’ll need to set the 'case_sensitive' option to false.
 
 ## Changelog
 
